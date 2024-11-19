@@ -1,0 +1,41 @@
+[versions]
+# Kotlin
+kotlin = "2.0.21"
+kotlin-neoforge = "5.6.0"
+kotlin-neoforge-range = "5" # Used in META-INF/neoforge.mods.tml
+
+kotlinx-serialization = {strictly = "[1.7.3,)", prefer = "1.7.3"}
+
+# Minecraft
+minecraft = { strictly = "1.21.1" }
+parchment-mc = "1.21"
+parchment = "2024.07.28"
+
+# NeoForge
+neoforge = "21.1.80"
+neoforge-range = "21.1.80" # Used in META-INF/neoforge.mods.tml
+mdg = "2.0.44-beta"
+
+[libraries]
+# Kotlin
+kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-neoforge = { module = "thedarkcolour:kotlinforforge-neoforge", version.ref = "kotlin-neoforge" }
+kotlinx-serialization-cbor = {module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor-jvm", version.ref = "kotlinx-serialization"}
+
+# Minecraft
+#minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+#parchment = { module = "org.parchmentmc.data:parchment-1.21", version.ref = "parchment" }
+
+# NeoForge
+#neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
+
+[plugins]
+# Kotlin
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+# NeoForge
+mdg = { id = "net.neoforged.moddev", version.ref = "mdg" }
+
+# Maven Publish
+maven-publish = { id = "maven-publish" }

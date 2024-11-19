@@ -1,0 +1,36 @@
+# Eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# Idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# VScode
+/.vscode/
+
+# Gradle
+.gradle
+build/
+**/build/
+
+# Other
+eclipse
+run
+runs
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Generated Sources
+src/generated/
