@@ -1,23 +1,35 @@
+import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("idea")
-	id("java-library")
+	java
+	idea
+	id("maven-publish")
 
-	alias(libs.plugins.mdg)
+	alias(libs.plugins.architectury.loom)
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.serialization)
-	alias(libs.plugins.maven.publish)
-//	id ("io.github.goooler.shadow") version "8.1.7"
+
+//	id("utils.kotlin-runtime-library")
+//	id("utils.mod-resources")
 }
 
-//configurations {
-//	create("shade")
-//}
+val modId = project.properties["mod_id"] as String
+val modVersion = System.getenv("TAG") ?: project.properties["mod_version"] as String
+
+base.archivesName = modId
+
+configure<LoomGradleExtensionAPI> {
+	silentMojangMappingsLicense()
+}
 
 repositories {
-	maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+	mavenCentral()
+	mavenLocal()
+
+	maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
 	maven("https://thedarkcolour.github.io/KotlinForForge/") {
 		name = "Kotlin for Forge"
 		content {
@@ -26,79 +38,28 @@ repositories {
 	}
 }
 
+@Suppress("UnstableApiUsage")
 dependencies {
-	implementation("thedarkcolour:kotlinforforge-neoforge:5.6.0:slim")
+	"minecraft"(libs.minecraft)
+	"mappings"(loom.layered {
+		officialMojangMappings()
+		parchment(libs.parchment)
+	})
 
-	api(kotlin("stdlib"))
-	api(kotlin("stdlib-common"))
-	api(kotlin("stdlib-jdk8"))
-	api("org.jetbrains.kotlinx", "kotlinx-serialization-core", "1.7.3")
-	api("org.jetbrains.kotlinx", "kotlinx-serialization-cbor-jvm", "1.7.3")
+	compileOnly(libs.kotlin.stdlib)
+	implementation(libs.kotlin.neoforge)
+
+//	neoForge(libs.neoforge)
 }
 
-val modId = project.properties["mod_id"] as String
-val modVersion = System.getenv("TAG") ?: project.properties["mod_version"] as String
-base.archivesName = modId
-
-neoForge {
-	version = "21.1.80"
-	validateAccessTransformers = true
-
-	parchment {
-		mappingsVersion = libs.versions.parchment.asProvider()
-		minecraftVersion = libs.versions.parchment.mc
-	}
-
-	mods {
-		create(modId) {
-			sourceSet(sourceSets["main"])
-		}
-	}
-
-	runs {
-		configureEach {
-			systemProperty("forge.logging.markers", "REGISTRIES")
-			systemProperty("neoforge.enabledGameTestNamespaces", modId)
-
-			logLevel = org.slf4j.event.Level.DEBUG
-		}
-
-		create("client") {
-			client()
-
-			programArguments.addAll("--username", "Vyrek_", "--quickPlaySingleplayer", "test")
-		}
-
-		create("server") {
-			server()
-
-			programArgument("--nogui")
-		}
-
-		create("data") {
-			data()
-
-			programArguments.addAll(
-				"--mod",
-				modId,
-				"--all",
-				"--output",
-				file("src/generated/resources/").absolutePath,
-				"--existing",
-				file("src/main/resources/").absolutePath
-			)
-		}
-	}
-}
-
-// Plugin
-// Cr: https://github.com/kernel-panic-codecave/Archie/blob/1.20.x/plugins/src/main/kotlin/utils/mod-resources.gradle.kts
 interface ModResourcesExtension {
+//	val filesMatching: ListProperty<String>
 	val versions: MapProperty<String, String>
 	val properties: MapProperty<String, String>
 }
 
 val extension = extensions.create<ModResourcesExtension>("modResources")
+
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 extension.versions.convention(provider {
 	versionCatalog.versionAliases.associate {
@@ -127,6 +88,21 @@ tasks {
 		}
 	}
 
+	withType<ProcessResources> {
+		exclude(".cache")
+
+		val resourceValues = buildMap {
+			put("versions", extension.versions.get())
+			putAll(extension.properties.get())
+		}
+
+		inputs.properties(resourceValues)
+
+		filesMatching("META-INF/neoforge.mods.toml") {
+			expand(resourceValues)
+		}
+	}
+
 	jar {
 		archiveFileName.set("${modId}-${modVersion}.jar")
 		from("LICENSE")
@@ -142,21 +118,11 @@ tasks {
 
 		withSourcesJar()
 	}
-
-	processResources {
-		val resourceValues = buildMap {
-			put("versions", extension.versions.get())
-			putAll(extension.properties.get())
-		}
-		inputs.properties(resourceValues)
-
-		filesMatching("META-INF/neoforge.mods.toml") {
-			expand(resourceValues)
-		}
-	}
 }
 
-sourceSets["main"].resources.srcDir("src/generated/resources")
+//modResources {
+//	filesMatching.add("META-INF/neoforge.mods.toml")
+//}
 
 idea {
 	module {

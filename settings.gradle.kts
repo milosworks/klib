@@ -1,9 +1,14 @@
 pluginManagement {
 	repositories {
 		maven("https://maven.neoforged.net/releases")
-		maven("https://maven.parchmentmc.org")
+		maven("https://maven.fabricmc.net/")
+		maven("https://maven.architectury.dev/")
+		maven("https://maven.minecraftforge.net/")
+
 		gradlePluginPortal()
 	}
+
+	includeBuild("plugins")
 }
 
 plugins {
