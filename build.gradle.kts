@@ -1,7 +1,6 @@
-import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import utils.kotlinForgeRuntimeLibrary
 
 plugins {
 	java
@@ -12,16 +11,22 @@ plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.serialization)
 
-//	id("utils.kotlin-runtime-library")
-//	id("utils.mod-resources")
+	id("utils.kotlin-runtime-library")
+	id("utils.mod-resources")
 }
 
-val modId = project.properties["mod_id"] as String
-val modVersion = System.getenv("TAG") ?: project.properties["mod_version"] as String
+val String.prop: String?
+	get() = project.properties[this] as String?
+
+val String.env: String?
+	get() = System.getenv(this)
+
+val modId = "mod_id".prop
+val modVersion = "TAG".env ?: "mod_version".prop
 
 base.archivesName = modId
 
-configure<LoomGradleExtensionAPI> {
+loom {
 	silentMojangMappingsLicense()
 }
 
@@ -40,37 +45,19 @@ repositories {
 
 @Suppress("UnstableApiUsage")
 dependencies {
-	"minecraft"(libs.minecraft)
-	"mappings"(loom.layered {
+	minecraft(libs.minecraft)
+	mappings(loom.layered {
 		officialMojangMappings()
 		parchment(libs.parchment)
 	})
 
 	compileOnly(libs.kotlin.stdlib)
+	compileOnly(libs.kotlinx.serialization)
 	implementation(libs.kotlin.neoforge)
+	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
 
-//	neoForge(libs.neoforge)
+	neoForge(libs.neoforge)
 }
-
-interface ModResourcesExtension {
-//	val filesMatching: ListProperty<String>
-	val versions: MapProperty<String, String>
-	val properties: MapProperty<String, String>
-}
-
-val extension = extensions.create<ModResourcesExtension>("modResources")
-
-val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
-extension.versions.convention(provider {
-	versionCatalog.versionAliases.associate {
-		it.replace(".", "_") to versionCatalog.findVersion(it).get().requiredVersion
-	}
-})
-extension.properties.convention(provider {
-	project.properties.mapKeys {
-		it.key.replace(".", "_")
-	}.mapValues { it.value.toString() }
-})
 
 tasks {
 	withType<JavaCompile> {
@@ -85,21 +72,6 @@ tasks {
 			jvmTarget.set(JvmTarget.JVM_21)
 
 			optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
-		}
-	}
-
-	withType<ProcessResources> {
-		exclude(".cache")
-
-		val resourceValues = buildMap {
-			put("versions", extension.versions.get())
-			putAll(extension.properties.get())
-		}
-
-		inputs.properties(resourceValues)
-
-		filesMatching("META-INF/neoforge.mods.toml") {
-			expand(resourceValues)
 		}
 	}
 
@@ -120,9 +92,9 @@ tasks {
 	}
 }
 
-//modResources {
-//	filesMatching.add("META-INF/neoforge.mods.toml")
-//}
+modResources {
+	filesMatching.add("META-INF/neoforge.mods.toml")
+}
 
 idea {
 	module {
@@ -134,7 +106,7 @@ idea {
 publishing {
 	publications {
 		create<MavenPublication>("mavenJava") {
-			groupId = project.properties["mod_group_id"] as String
+			groupId = "mod_group_id".prop
 			artifactId = modId
 			version = modVersion
 
