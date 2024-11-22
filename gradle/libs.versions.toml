@@ -11,7 +11,7 @@ parchment-mc = "1.21"
 
 neoforge = "21.1.80"
 neoforge-range = "21.1.80" # Used in META-INF/neoforge.mods.tml
-architectury-loom = "1.7-SNAPSHOT"
+architectury-loom = "1.6-SNAPSHOT"
 mdg = "2.0.44-beta"
 
 shadow = "8.3.5"

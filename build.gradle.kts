@@ -53,8 +53,10 @@ dependencies {
 	neoForge(libs.neoforge)
 
 	compileOnly(libs.kotlin.stdlib)
-	implementation(libs.kotlin.neoforge)
-	
+	implementation(libs.kotlin.neoforge) {
+		exclude("net.neoforged.fancymodloader", "loader")
+	}
+
 	compileOnly(libs.kotlinx.serialization)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
 }
