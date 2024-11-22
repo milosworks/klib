@@ -23,8 +23,6 @@ dependencies {
 //	implementation(libs.plugins.shadow.toLibrary())
 }
 
-sourceSets
-
 fun ProviderConvertible<PluginDependency>.toLibrary() = asProvider().toLibrary()
 
 fun Provider<PluginDependency>.toLibrary() = get().toLibrary()
