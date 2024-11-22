@@ -10,17 +10,10 @@ plugins {
 repositories {
 	mavenCentral()
 	gradlePluginPortal()
-
-//	maven("https://maven.neoforged.net/releases")
-//	maven("https://maven.fabricmc.net/")
-//	maven("https://maven.architectury.dev/")
-//	maven("https://maven.minecraftforge.net/")
 }
 
 dependencies {
 	implementation(libs.plugins.kotlin.jvm.toLibrary())
-//	implementation(libs.plugins.architectury.loom.toLibrary())
-//	implementation(libs.plugins.shadow.toLibrary())
 }
 
 fun ProviderConvertible<PluginDependency>.toLibrary() = asProvider().toLibrary()

@@ -8,7 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import vyrek.kodek.TestMod
 import vyrek.kodek.networking.TPackets.Uwu
 
-interface Payload: CustomPacketPayload {
+interface Payload : CustomPacketPayload {
 	override fun type(): CustomPacketPayload.Type<out CustomPacketPayload?> {
 		return CustomPacketPayload.Type(TestMod.id("test"))
 	}
@@ -16,11 +16,11 @@ interface Payload: CustomPacketPayload {
 
 object TPackets {
 	@Serializable
-	data class Uwu(val str: String): Payload
+	data class Uwu(val str: String) : Payload
 }
 
 object TKodek {
 	val uwu: StreamCodec<RegistryFriendlyByteBuf, Uwu> = StreamCodec.of(
-		{ buf, obj -> Cbor.encodeToByteArray(Uwu.serializer(), obj)}
+		{ buf, obj -> Cbor.encodeToByteArray(Uwu.serializer(), obj) }
 	) { buf -> Cbor.decodeFromByteArray(Uwu.serializer(), buf.readByteArray()) }
 }

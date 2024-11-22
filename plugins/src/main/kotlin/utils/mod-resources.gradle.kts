@@ -1,11 +1,6 @@
 package utils
 
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.withType
-
 interface ModResourcesExtension {
-	val filesMatching: ListProperty<String>
 	val versions: MapProperty<String, String>
 	val properties: MapProperty<String, String>
 }
@@ -34,7 +29,7 @@ tasks.withType<ProcessResources>().configureEach {
 
 	inputs.properties(resourceValues)
 
-	filesMatching(extension.filesMatching.get()) {
+	filesMatching("META-INF/neoforge.mods.toml") {
 		expand(resourceValues)
 	}
 }
