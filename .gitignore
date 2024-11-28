@@ -20,6 +20,7 @@ out
 .gradle
 build/
 **/build/
+.kotlin/
 
 # Other
 eclipse
