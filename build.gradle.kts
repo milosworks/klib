@@ -11,6 +11,8 @@ plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.serialization)
 
+	alias(libs.plugins.dokka)
+
 	id("utils.kotlin-runtime-library")
 	id("utils.mod-resources")
 }
@@ -52,11 +54,11 @@ dependencies {
 	})
 	neoForge(libs.neoforge)
 
-	compileOnly(libs.kotlin.stdlib)
 	implementation(libs.kotlin.neoforge) {
 		exclude("net.neoforged.fancymodloader", "loader")
 	}
 
+	compileOnly(libs.kotlin.stdlib)
 	compileOnly(libs.kotlinx.serialization)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
 }
@@ -91,6 +93,27 @@ tasks {
 		targetCompatibility = JavaVersion.VERSION_21
 
 		withSourcesJar()
+	}
+}
+
+dokka {
+	moduleName.set("Kodek")
+
+	dokkaSourceSets.main {
+		sourceLink {
+			localDirectory.set(file("src/main/kotlin"))
+			remoteUrl("https://github.com/milosworks/kodek")
+			remoteLineSuffix.set("#L")
+		}
+	}
+
+	pluginsConfiguration.html {
+		footerMessage.set("MilosWorks")
+	}
+
+	dokkaPublications.html {
+		suppressInheritedMembers = true
+		outputDirectory.set(layout.buildDirectory.dir("docs"))
 	}
 }
 

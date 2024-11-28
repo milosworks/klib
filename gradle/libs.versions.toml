@@ -12,9 +12,9 @@ parchment-mc = "1.21"
 neoforge = "21.1.80"
 neoforge-range = "21.1.80" # Used in META-INF/neoforge.mods.tml
 architectury-loom = "1.6-SNAPSHOT"
-mdg = "2.0.44-beta"
 
-shadow = "8.3.5"
+# Other
+dokka = "2.0.0-Beta"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -31,6 +31,6 @@ neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
-mdg = { id = "net.neoforged.moddev", version.ref = "mdg" }
 architectury-loom = { id = "dev.architectury.loom", version.ref = "architectury-loom" }
-shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

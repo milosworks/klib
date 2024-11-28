@@ -16,7 +16,7 @@ dependencies {
 	implementation(libs.plugins.kotlin.jvm.toLibrary())
 }
 
-fun ProviderConvertible<PluginDependency>.toLibrary() = asProvider().toLibrary()
+//fun ProviderConvertible<PluginDependency>.toLibrary() = asProvider().toLibrary()
 
 fun Provider<PluginDependency>.toLibrary() = get().toLibrary()
 
