@@ -1,3 +1,4 @@
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.kotlinForgeRuntimeLibrary
@@ -61,6 +62,7 @@ dependencies {
 	compileOnly(libs.kotlin.stdlib)
 	compileOnly(libs.kotlinx.serialization)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
+	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.nbt)
 }
 
 tasks {
@@ -100,6 +102,17 @@ dokka {
 	moduleName.set("Kodek")
 
 	dokkaSourceSets.main {
+		documentedVisibilities(
+			VisibilityModifier.Package,
+			VisibilityModifier.Public,
+			VisibilityModifier.Protected
+		)
+
+		perPackageOption {
+			matchingRegex.set(".*internal.*")
+			suppress.set(true)
+		}
+
 		sourceLink {
 			localDirectory.set(file("src/main/kotlin"))
 			remoteUrl("https://github.com/milosworks/kodek")

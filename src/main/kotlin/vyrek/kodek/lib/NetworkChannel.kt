@@ -4,11 +4,8 @@ package vyrek.kodek.lib
 
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
-import net.minecraft.network.RegistryFriendlyByteBuf
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
@@ -19,27 +16,18 @@ import net.neoforged.neoforge.network.PacketDistributor
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler
 import net.neoforged.neoforge.network.handling.IPayloadContext
-import vyrek.kodek.lib.serializer.MinecraftSerializers
 import vyrek.kodek.lib.serializer.SResourceLocation
+import vyrek.kodek.lib.serializer.SerializationManager
+import vyrek.kodek.lib.serializer.toStreamCodec
 import kotlin.reflect.KClass
 
 /**
- * Handler for the packets the user registers
+ * A function type representing a handler for processing user-defined packets.
  */
 typealias PacketHandler <T> = (T, IPayloadContext) -> Unit
 
-/**
- * Cbor serialization instance, used on ALL channels.
- */
-var cbor = Cbor {
-	serializersModule = MinecraftSerializers.module
-}
-
-/**
- * @suppress suppress for dokka
- */
 @Serializable
-data class Payload(val id: SResourceLocation, val index: Int, val data: ByteArray) : CustomPacketPayload {
+internal data class Payload(val id: SResourceLocation, val index: Int, val data: ByteArray) : CustomPacketPayload {
 	override fun type(): CustomPacketPayload.Type<out CustomPacketPayload?> {
 		return CustomPacketPayload.Type(id)
 	}
@@ -63,10 +51,7 @@ data class Payload(val id: SResourceLocation, val index: Int, val data: ByteArra
 	}
 }
 
-private val PayloadCodec: StreamCodec<RegistryFriendlyByteBuf, Payload> = StreamCodec.of(
-	{ buffer, value -> buffer.writeByteArray(cbor.encodeToByteArray(Payload.serializer(), value)) },
-	{ buffer -> cbor.decodeFromByteArray(Payload.serializer(), buffer.readByteArray()) }
-)
+private val PayloadCodec = Payload.serializer().toStreamCodec()
 
 class NetworkChannel(val id: ResourceLocation) {
 	private val packetId = CustomPacketPayload.Type<Payload>(id)
@@ -103,7 +88,7 @@ class NetworkChannel(val id: ResourceLocation) {
 			val klass = serverClasses.find { x -> x == it::class } as? KClass<T>
 				?: throw IllegalStateException()
 			val index = serverClasses.indexOf(klass)
-			val bytes = cbor.encodeToByteArray(klass.serializer(), it)
+			val bytes = SerializationManager.cbor.encodeToByteArray(klass.serializer(), it)
 
 			Payload(id, index, bytes)
 		}.also {
@@ -196,7 +181,7 @@ class NetworkChannel(val id: ResourceLocation) {
 			val klass = clientClasses.find { x -> x == it::class } as? KClass<T>
 				?: throw IllegalStateException(message)
 			val index = clientClasses.indexOf(klass)
-			val bytes = cbor.encodeToByteArray(klass.serializer(), it)
+			val bytes = SerializationManager.cbor.encodeToByteArray(klass.serializer(), it)
 
 			Payload(id, index, bytes)
 		}
@@ -217,7 +202,7 @@ class NetworkChannel(val id: ResourceLocation) {
 					val handler = clientboundHandlers.getOrNull(payload.index) as? PacketHandler<Any>
 						?: throw NoSuchElementException("No handler was found on the clientside. Did you forget to do clientbound?")
 
-					val msg = cbor.decodeFromByteArray(klass.serializer(), payload.data)
+					val msg = SerializationManager.cbor.decodeFromByteArray(klass.serializer(), payload.data)
 
 					handler(msg, ctx)
 				},
@@ -228,7 +213,7 @@ class NetworkChannel(val id: ResourceLocation) {
 					val handler = serverboundHandlers.getOrNull(payload.index) as? PacketHandler<Any>
 						?: throw NoSuchElementException("No handler was found on the serverside. Did you forget to do serverbound?")
 
-					val msg = cbor.decodeFromByteArray(klass.serializer(), payload.data)
+					val msg = SerializationManager.cbor.decodeFromByteArray(klass.serializer(), payload.data)
 
 					handler(msg, ctx)
 				}

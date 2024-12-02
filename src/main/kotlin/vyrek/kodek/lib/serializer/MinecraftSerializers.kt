@@ -103,8 +103,7 @@ object MinecraftSerializers {
 		}
 	}
 
-	// TODO: Component codec
-//	val SComponent = fromCodec(ComponentSerialization.CODEC)
+	// TODO: Component serializer
 
 	val Vec3i = VectorSerializer.create<Int, MVec3i>(
 		{ x, y, z -> MVec3i(x, y, z) }, { x }, { y }, { z }
@@ -205,7 +204,7 @@ object MinecraftSerializers {
 class VectorSerializer<T, K : Any>(
 	name: String,
 	val constructor: (x: T, y: T, z: T) -> K,
-	kind: PrimitiveKind,
+	primitiveKind: PrimitiveKind,
 	val primitiveSerializer: KSerializer<T>,
 	val getX: K.() -> T,
 	val getY: K.() -> T,
@@ -239,9 +238,9 @@ class VectorSerializer<T, K : Any>(
 	}
 
 	override val descriptor: SerialDescriptor = buildClassSerialDescriptor(name) {
-		element("x", PrimitiveSerialDescriptor("x", kind))
-		element("y", PrimitiveSerialDescriptor("y", kind))
-		element("z", PrimitiveSerialDescriptor("z", kind))
+		element("x", PrimitiveSerialDescriptor("x", primitiveKind))
+		element("y", PrimitiveSerialDescriptor("y", primitiveKind))
+		element("z", PrimitiveSerialDescriptor("z", primitiveKind))
 	}
 
 	override fun serialize(encoder: Encoder, value: K) {
