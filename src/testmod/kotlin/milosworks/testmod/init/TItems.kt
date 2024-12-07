@@ -1,8 +1,8 @@
-package vyrek.kodek.init
+package milosworks.testmod.init
 
+import milosworks.testmod.TestMod
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.registries.DeferredRegister
-import vyrek.kodek.TestMod
 
 object TItems {
 	val ITEMS: DeferredRegister.Items = DeferredRegister.createItems(TestMod.ID)

@@ -1,3 +1,3 @@
-# Kodek
+# KLib
 
-Kodek is a library intended to be used with minecraft packets
+KLib (KLibrary) is a utility library, including network handling (packets, etc), UI, etc.

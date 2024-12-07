@@ -1,4 +1,4 @@
-package vyrek.kodek.lib.serializer
+package milosworks.klib.serialization
 
 import net.benwoodworth.knbt.*
 import net.minecraft.nbt.*

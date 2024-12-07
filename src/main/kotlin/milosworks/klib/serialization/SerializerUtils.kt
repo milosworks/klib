@@ -1,11 +1,10 @@
-package vyrek.kodek.lib.serializer
+package milosworks.klib.serialization
 
 import com.google.gson.JsonParser
 import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
-import com.mojang.serialization.JsonOps
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -84,11 +83,9 @@ inline fun <reified T : Any> Codec<T>.toKSerializer(): KSerializer<T> {
 //}
 
 /**
- * Converts a [KSerializer] into a [Codec]. This function enables serialization and deserialization
- * between Minecraft's `DynamicOps` ([JsonOps] and [NbtOps]) and Kotlin objects using kotlinx.serialization.
+ * Converts a [KSerializer] into a [Codec].
  *
  * Example usage:
- *
  * ```kotlin
  * @Serializable
  * data class TestData(
@@ -99,7 +96,7 @@ inline fun <reified T : Any> Codec<T>.toKSerializer(): KSerializer<T> {
  *     val boolean: Boolean
  * )
  *
- * // Using the `toCodec` extension:
+ * // Using the toCodec extension:
  * val TestCodec = TestData.serializer().toCodec()
  *
  * // The above is equivalent to manually creating a codec:
@@ -117,7 +114,7 @@ inline fun <reified T : Any> Codec<T>.toKSerializer(): KSerializer<T> {
  * **Note:** Only `JsonOps` and `NbtOps` are supported. Attempting to use other `DynamicOps` implementations
  * will result in an [UnsupportedOperationException].
  *
- * @return A [Codec] capable of encoding and decoding the type `T` defined by the [KSerializer].
+ * @return A [Codec] capable of type `T` defined by the [KSerializer].
  * @throws UnsupportedOperationException If the provided `DynamicOps` type is not supported.
  */
 fun <T : Any> KSerializer<T>.toCodec(): Codec<T> {
@@ -146,10 +143,10 @@ fun <T : Any> KSerializer<T>.toCodec(): Codec<T> {
 
 				val value = when (serializer) {
 					is Json -> {
-						if (input !is JsonElement)
+						if (input !is GsonElement)
 							throw IllegalArgumentException("Expected input of type JsonElement but received ${input?.javaClass?.simpleName}.")
 
-						serializer.decodeFromJsonElement(this@toCodec, input)
+						serializer.decodeFromJsonElement(this@toCodec, input.toKson)
 					}
 
 					is Nbt -> {
@@ -183,6 +180,9 @@ internal fun <T : Any> tryOrThrow(action: () -> T): DataResult<T> {
 val JsonElement.toGson: GsonElement
 	get() = JsonParser.parseString(this.toString())
 
+val GsonElement.toKson: JsonElement
+	get() = SerializationManager.json.parseToJsonElement(this.toString())
+
 /**
  * Converts any KSerializer into a StreamCodec using Cbor
  */
@@ -192,4 +192,3 @@ fun <T : Any> KSerializer<T>.toStreamCodec(): StreamCodec<RegistryFriendlyByteBu
 		{ buffer -> SerializationManager.cbor.decodeFromByteArray(serializer(), buffer.readByteArray()) }
 	)
 }
-

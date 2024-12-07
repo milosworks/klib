@@ -1,11 +1,14 @@
 @file:OptIn(InternalSerializationApi::class)
 
-package vyrek.kodek.lib
+package milosworks.klib.networking
 
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
+import milosworks.klib.serialization.SResourceLocation
+import milosworks.klib.serialization.SerializationManager
+import milosworks.klib.serialization.toStreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
@@ -16,9 +19,6 @@ import net.neoforged.neoforge.network.PacketDistributor
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler
 import net.neoforged.neoforge.network.handling.IPayloadContext
-import vyrek.kodek.lib.serializer.SResourceLocation
-import vyrek.kodek.lib.serializer.SerializationManager
-import vyrek.kodek.lib.serializer.toStreamCodec
 import kotlin.reflect.KClass
 
 /**

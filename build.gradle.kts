@@ -29,8 +29,33 @@ val modVersion = "TAG".env ?: "mod_version".prop
 
 base.archivesName = modId
 
+sourceSets {
+	create("testmod") {
+		runtimeClasspath += main.get().runtimeClasspath
+		compileClasspath += main.get().compileClasspath
+	}
+}
+
 loom {
 	silentMojangMappingsLicense()
+
+	runs {
+		create("testmodClient") {
+			client()
+			ideConfigGenerated(project.rootProject == project)
+			name = "TestMod Client"
+			mods {
+				create("testmod") {
+					sourceSet(sourceSets.getByName("testmod"))
+				}
+
+				create("klib") {
+					sourceSet(sourceSets.main.get())
+				}
+			}
+			source(sourceSets.getByName("testmod"))
+		}
+	}
 }
 
 repositories {
@@ -63,6 +88,8 @@ dependencies {
 	compileOnly(libs.kotlinx.serialization)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.nbt)
+
+//	"testmodImplementation"(sourceSets.main)
 }
 
 tasks {
@@ -99,7 +126,7 @@ tasks {
 }
 
 dokka {
-	moduleName.set("Kodek")
+	moduleName.set("KLibrary")
 
 	dokkaSourceSets.main {
 		documentedVisibilities(
@@ -115,7 +142,7 @@ dokka {
 
 		sourceLink {
 			localDirectory.set(file("src/main/kotlin"))
-			remoteUrl("https://github.com/milosworks/kodek")
+			remoteUrl("https://github.com/milosworks/klib")
 			remoteLineSuffix.set("#L")
 		}
 	}

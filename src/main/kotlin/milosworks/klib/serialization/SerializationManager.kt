@@ -1,4 +1,4 @@
-package vyrek.kodek.lib.serializer
+package milosworks.klib.serialization
 
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.JsonOps
@@ -14,7 +14,7 @@ import net.minecraft.nbt.NbtOps
 
 object SerializationManager {
 	private var sharedModule: SerializersModule = SerializersModule {
-		include(MinecraftSerializers.module)
+		include(MinecraftSerializersModule)
 	}
 
 	var cbor: Cbor = createCbor()

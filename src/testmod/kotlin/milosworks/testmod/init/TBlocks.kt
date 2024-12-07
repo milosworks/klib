@@ -1,13 +1,13 @@
-package vyrek.kodek.init
+package milosworks.testmod.init
 
+import milosworks.testmod.TestMod
+import milosworks.testmod.block.Test
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.level.block.Block
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.registries.DeferredHolder
 import net.neoforged.neoforge.registries.DeferredRegister
 import thedarkcolour.kotlinforforge.neoforge.forge.getValue
-import vyrek.kodek.TestMod
-import vyrek.kodek.block.*
 import net.minecraft.world.item.Item.Properties as ItemProperties
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties.of as props
 
