@@ -5,10 +5,15 @@ import com.mojang.serialization.JavaOps
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import kotlinx.serialization.Serializable
+import milosworks.klib.networking.NetworkChannel
+import milosworks.klib.serialization.SBlockPos
+import milosworks.klib.serialization.SFriendlyByteBuf
+import milosworks.klib.serialization.SResourceLocation
+import milosworks.testmod.TestMod
 import net.minecraft.resources.ResourceLocation
 import java.nio.ByteBuffer
 
-val CHANNEL = NetworkChannel(Klib.id("main"))
+val CHANNEL = NetworkChannel(TestMod.id("main"))
 
 data class TestData(
 	val mystr2: String,
@@ -26,7 +31,6 @@ data class SecondTestData(
 	val mappedInt: Map<Int, String>
 )
 
-
 val SecondTestCodec: MapCodec<SecondTestData> = RecordCodecBuilder.mapCodec {
 	it.group(
 		Codec.BYTE_BUFFER.fieldOf("buf").forGetter(SecondTestData::buf),
@@ -34,7 +38,7 @@ val SecondTestCodec: MapCodec<SecondTestData> = RecordCodecBuilder.mapCodec {
 	).apply(it, ::SecondTestData)
 }
 
-val TestCodec: Codec<TestData> = RecordCodecBuilder.create {
+val TestCodec: MapCodec<TestData> = RecordCodecBuilder.mapCodec {
 	it.group(
 		Codec.STRING.fieldOf("mystr").forGetter(TestData::mystr2),
 		Codec.INT.fieldOf("int").forGetter(TestData::int),
@@ -122,7 +126,7 @@ object TPackets {
 			),
 			ResourceLocation.parse("minecraft:diamond_block")
 		)
-		val encoded = TestCodec.encodeStart(JavaOps.INSTANCE, data)
+		val encoded = TestCodec.codec().encodeStart(JavaOps.INSTANCE, data)
 
 		CHANNEL.serverbound(Uwu::class) { msg, ctx ->
 			println(msg)

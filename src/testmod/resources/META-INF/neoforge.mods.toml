@@ -3,36 +3,29 @@ loaderVersion = "[${versions.kotlin_neoforge_range},)"
 license = "${mod_license}"
 
 [[mods]]
-modId = "${mod_id}"
+modId = "testmod"
 version = "${mod_version}"
-displayName = "${mod_name}"
+displayName = "TestMod"
 authors = "${mod_authors}"
-description = '''${mod_description}'''
+description = '''TestMod for KLib'''
 
-[[dependencies."${mod_id}"]]
+[[dependencies.testmod]]
 modId = "neoforge"
 type = "required"
 versionRange = "[${versions.neoforge_range},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies."${mod_id}"]]
+[[dependencies.testmod]]
 modId = "minecraft"
 type = "required"
 versionRange = "[${versions.minecraft}]"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies."${mod_id}"]]
+[[dependencies.testmod]]
 modId = "kotlinforforge"
 type = "required"
 versionRange = "[${versions.kotlin_neoforge_range},)"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies."${mod_id}"]]
-modId = "klib"
-type = "required"
-versionRange = "[0.0.0-dev,)" # ${versions.klib}
 ordering = "NONE"
 side = "BOTH"

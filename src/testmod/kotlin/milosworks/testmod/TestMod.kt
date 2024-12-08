@@ -11,7 +11,7 @@ import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 
 @Mod(TestMod.ID)
 object TestMod {
-	const val ID = "klib"
+	const val ID = "testmod"
 	val LOGGER: Logger = LogManager.getLogger(ID)
 
 	init {

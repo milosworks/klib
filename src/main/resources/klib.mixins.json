@@ -4,6 +4,8 @@
 	"package": "milosworks.klib.mixins",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"RecordCodecBuilderAccessor",
+		"RecordCodecBuilderMixin"
 	],
 	"server": [],
 	"client": [],

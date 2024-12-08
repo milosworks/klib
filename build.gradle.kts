@@ -46,14 +46,30 @@ loom {
 			name = "TestMod Client"
 			mods {
 				create("testmod") {
-					sourceSet(sourceSets.getByName("testmod"))
+					sourceSet(sourceSets["testmod"])
 				}
 
 				create("klib") {
 					sourceSet(sourceSets.main.get())
 				}
 			}
-			source(sourceSets.getByName("testmod"))
+			source(sourceSets["testmod"])
+		}
+
+		create("testmodServer") {
+			server()
+			ideConfigGenerated(project.rootProject == project)
+			name = "TestMod Server"
+			mods {
+				create("testmod") {
+					sourceSet(sourceSets["testmod"])
+				}
+
+				create("klib") {
+					sourceSet(sourceSets.main.get())
+				}
+			}
+			source(sourceSets["testmod"])
 		}
 	}
 }
@@ -89,7 +105,7 @@ dependencies {
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
 	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.nbt)
 
-//	"testmodImplementation"(sourceSets.main)
+	"testmodImplementation"(sourceSets.main.get().output)
 }
 
 tasks {
