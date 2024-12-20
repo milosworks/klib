@@ -1,38 +1,78 @@
 [versions]
 kotlin = "2.0.21"
 kotlin-neoforge = "5.6.0"
+kotlin-fabric = "1.12.3+kotlin.2.0.21"
 kotlin-neoforge-range = "5" # Used in META-INF/neoforge.mods.tml
 kotlinx-serialization = { strictly = "[1.7.3,)", prefer = "1.7.3" }
-kotlinx-nbt = "0.11.5"
+
+knbt = "0.11.7"
+tomlkt = "0.3.7"
+json5k = "0.3.0"
 
 # Minecraft
 minecraft = { strictly = "1.21.1" } # Used in META-INF/neoforge.mods.tml
 parchment = "2024.07.28"
 parchment-mc = "1.21"
 
+architectury = "15.0.1"
+architectury-plugin = { require = "[3.4, 3.5[" }
+architectury-loom = "1.7-SNAPSHOT"
+architectury-kotlin = "1.0.0"
+
 neoforge = "21.1.80"
 neoforge-range = "21.1.80" # Used in META-INF/neoforge.mods.tml
-architectury-loom = "1.6-SNAPSHOT"
+
+fabric-loader = "0.16.9"
+fabric-api = "0.110.0+1.21.1"
+
+modfusioner = "1.0.12"
+modpublisher = "2.1.6"
 
 # Other
 dokka = "2.0.0-Beta"
+shadow = "8.3.0"
+compose = "1.7.1"
+archie = "1.0.0"
+
+[bundles]
+# must contain all transitive deps, compose goes here in the future
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-neoforge = { module = "thedarkcolour:kotlinforforge-neoforge", version.ref = "kotlin-neoforge" }
+kotlin-fabric = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "kotlin-fabric" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor-jvm", version.ref = "kotlinx-serialization" }
-kotlinx-serialization-nbt = { module = "net.benwoodworth.knbt:knbt-jvm", version.ref = "kotlinx-nbt" }
+kotlinx-serialization-nbt = { module = "net.benwoodworth.knbt:knbt-jvm", version.ref = "knbt" }
+kotlinx-serialization-json5 = { module = "io.github.xn32:json5k-jvm", version.ref = "json5k" }
+kotlinx-serialization-toml = { module = "net.peanuuutz.tomlkt:tomlkt-jvm", version.ref = "tomlkt" }
 
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 parchment = { module = "org.parchmentmc.data:parchment-1.21", version.ref = "parchment" }
+
+architectury-common = { module = "dev.architectury:architectury", version.ref = "architectury" }
+architectury-neoforge = { module = "dev.architectury:architectury-neoforge", version.ref = "architectury" }
+architectury-fabric = { module = "dev.architectury:architectury-fabric", version.ref = "architectury" }
+
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
 
 neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlin-compose-plugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
+architectury = { id = "architectury-plugin", version.ref = "architectury-plugin" }
 architectury-loom = { id = "dev.architectury.loom", version.ref = "architectury-loom" }
+architectury-kotlin = { id = "com.withertech.architectury.kotlin.plugin", version.ref = "architectury-kotlin" }
 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+modfusioner = { id = "com.hypherionmc.modutils.modfusioner", version.ref = "modfusioner" }
+modpublisher = { id = "com.hypherionmc.modutils.modpublisher", version.ref = "modpublisher" }
+archie = { id = "net.kernelpanicsoft.archie.plugin", version.ref = "archie" }

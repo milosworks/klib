@@ -21,6 +21,7 @@ out
 build/
 **/build/
 .kotlin/
+local.properties
 
 # Other
 eclipse
@@ -35,3 +36,6 @@ $RECYCLE.BIN/
 
 # Generated Sources
 src/generated/
+
+# maven
+repo/
