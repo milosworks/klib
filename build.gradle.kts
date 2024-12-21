@@ -1,4 +1,6 @@
+import dev.architectury.plugin.ArchitectPluginExtension
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import net.fabricmc.loom.task.RemapJarTask
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -8,16 +10,18 @@ plugins {
 	java
 	idea
 
-	alias(libs.plugins.architectury)
-	alias(libs.plugins.architectury.kotlin) apply false
-	alias(libs.plugins.architectury.loom) apply false
-
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.serialization)
+
+	alias(libs.plugins.architectury)
+	alias(libs.plugins.architectury.kotlin)
+	alias(libs.plugins.architectury.loom) apply false
+
 //	alias(libs.plugins.kotlin.compose)
 //	alias(libs.plugins.kotlin.compose.plugin) apply false
 
 	alias(libs.plugins.modfusioner)
+	alias(libs.plugins.archie) apply false
 
 	alias(libs.plugins.dokka)
 }
@@ -36,9 +40,35 @@ val String.localOrEnv: String?
 	get() = localProperties?.get(this)?.toString() ?: System.getenv(this.uppercase())
 
 subprojects {
-	apply(plugin = "dev.architectury.loom")
+	apply(plugin = "java")
+	apply(plugin = "org.jetbrains.kotlin.jvm")
+	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
 
-	val loom = project.extensions.getByName<LoomGradleExtensionAPI>("loom")
+	apply(plugin = "dev.architectury.loom")
+	apply(plugin = "architectury-plugin")
+//	apply(plugin = "com.withertech.architectury.kotlin.plugin")
+
+	apply(plugin = "maven-publish")
+
+	//	apply(plugin = "org.jetbrains.compose")
+//	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+
+	val parentName = project.layout.projectDirectory.asFile.parentFile.name
+	val modLoader = project.layout.projectDirectory.asFile.name
+
+	val isCommon = modLoader == "common"
+	val isNeoForge = modLoader == "neoforge"
+	val isFabric = modLoader == "fabric"
+
+	val commonPath = when {
+		isCommon -> project.name
+		parentName != "test" -> ":common"
+		else -> ":${rootProject.name}-$parentName-common"
+	}
+
+	base {
+		archivesName.set("${project.name}-${rootProject.libs.versions.minecraft.get()}")
+	}
 
 	configure<LoomGradleExtensionAPI> {
 		silentMojangMappingsLicense()
@@ -51,15 +81,6 @@ subprojects {
 			named("server") {
 				name("Test Server")
 				source(sourceSets.test.get())
-			}
-		}
-
-		if (project.path != ":common") {
-			mods {
-				maybeCreate("main").apply {
-					sourceSet(project.sourceSets.main.get())
-					sourceSet(project(":common").sourceSets.main.get())
-				}
 			}
 		}
 	}
@@ -80,35 +101,73 @@ subprojects {
 		}
 	}
 
+	if (project.path != ":common") {
+		configure<LoomGradleExtensionAPI> {
+			mods {
+				maybeCreate("main").apply {
+					sourceSet(project.sourceSets.main.get())
+					sourceSet(project(":common").sourceSets.main.get())
+				}
+			}
+		}
+
+		configure<ArchitectPluginExtension> {
+			platformSetupLoomIde()
+		}
+	}
+
 	@Suppress("UnstableApiUsage")
 	dependencies {
 		"minecraft"(rootProject.libs.minecraft)
-		"mappings"(loom.layered {
+
+		"mappings"(project.the<LoomGradleExtensionAPI>().layered {
 			officialMojangMappings()
 			parchment(rootProject.libs.parchment)
 		})
 
 		compileOnly("org.jetbrains:annotations:24.1.0")
+		compileOnly(rootProject.libs.kotlinx.serialization)
+		compileOnly(kotlin("reflect"))
+
+		if (isNeoForge) {
+			"neoForge"(rootProject.libs.neoforge)
+			compileOnly(rootProject.libs.kotlin.stdlib)
+			"modApi"(rootProject.libs.architectury.neoforge)
+			implementation(rootProject.libs.kotlin.neoforge) {
+				exclude(group = "net.neoforged.fancymodloader", module = "loader")
+			}
+		}
+
+		if (isFabric) {
+			"modImplementation"(rootProject.libs.fabric.loader)
+			"modApi"(rootProject.libs.fabric.api)
+			"modApi"(rootProject.libs.architectury.fabric)
+			"modImplementation"(rootProject.libs.kotlin.fabric)
+		}
+
+		if (!isCommon && System.getProperty("idea.sync.active", false.toString()).toBoolean()) {
+			compileOnly(project(commonPath, configuration = "namedElements"))
+		}
+	}
+
+	tasks.named<RemapJarTask>("remapJar") {
+		archiveClassifier.set(null as String?)
+	}
+
+	java {
+		toolchain {
+			languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_21.toString()))
+		}
+
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
+
+		withSourcesJar()
 	}
 }
 
-val modId = "mod_id".prop
-val modVersion = "TAG".env ?: "mod_version".prop!!
-
 allprojects {
-	apply(plugin = "java")
-	apply(plugin = "idea")
-	apply(plugin = "org.jetbrains.kotlin.jvm")
-	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-//	apply(plugin = "org.jetbrains.compose")
-//	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
-	apply(plugin = "architectury-plugin")
-	apply(plugin = "com.withertech.architectury.kotlin.plugin")
-	apply(plugin = "maven-publish")
-
-	version = modVersion
-	group = "mod_group".prop!!
-	base.archivesName = modId
+//	apply(plugin = "com.withertech.architectury.kotlin.plugin")
 
 	tasks {
 		withType<JavaCompile> {
@@ -130,87 +189,7 @@ allprojects {
 	architectury {
 		compileOnly()
 	}
-
-	java {
-		toolchain {
-			languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_21.toString()))
-		}
-
-		sourceCompatibility = JavaVersion.VERSION_21
-		targetCompatibility = JavaVersion.VERSION_21
-
-		withSourcesJar()
-	}
 }
-
-//sourceSets {
-//	create("testmod") {
-//		runtimeClasspath += main.get().runtimeClasspath
-//		compileClasspath += main.get().compileClasspath
-//	}
-//}
-
-//loom {
-//	silentMojangMappingsLicense()
-//
-//	@Suppress("UnstableApiUsage")
-//	runs {
-//		create("testmodClient") {
-//			client()
-////			vmArg("-Dmixin.debug.export=true")
-//			ideConfigGenerated(project.rootProject == project)
-//			name = "TestMod Client"
-//			mods {
-//				create("testmod") {
-//					sourceSet(sourceSets["testmod"])
-//				}
-//
-//				create("klib") {
-//					sourceSet(sourceSets.main.get())
-//				}
-//			}
-//			source(sourceSets["testmod"])
-//		}
-//
-//		create("testmodServer") {
-//			server()
-////			vmArg("-Dmixin.debug.export=true")
-//			ideConfigGenerated(project.rootProject == project)
-//			name = "TestMod Server"
-//			mods {
-//				create("testmod") {
-//					sourceSet(sourceSets["testmod"])
-//				}
-//
-//				create("klib") {
-//					sourceSet(sourceSets.main.get())
-//				}
-//			}
-//			source(sourceSets["testmod"])
-//		}
-//	}
-//}
-//
-//@Suppress("UnstableApiUsage")
-//dependencies {
-//	minecraft(libs.minecraft)
-//	mappings(loom.layered {
-//		officialMojangMappings()
-//		parchment(libs.parchment)
-//	})
-//	neoForge(libs.neoforge)
-//
-//	implementation(libs.kotlin.neoforge) {
-//		exclude("net.neoforged.fancymodloader", "loader")
-//	}
-//
-//	compileOnly(libs.kotlin.stdlib)
-//	compileOnly(libs.kotlinx.serialization)
-//	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.cbor)
-//	kotlinForgeRuntimeLibrary(libs.kotlinx.serialization.nbt)
-//
-//	"testmodImplementation"(sourceSets.main.get().output)
-//}
 
 dokka {
 	moduleName.set("KLibrary")

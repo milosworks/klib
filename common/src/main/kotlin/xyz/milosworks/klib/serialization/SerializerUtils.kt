@@ -131,6 +131,7 @@ internal fun <T : Any> tryOrThrow(action: () -> T): DataResult<T> {
 	}
 }
 
+@Suppress("UNCHECKED_CAST")
 open class CodecSerializer<T>(private val codec: Codec<T>) : KSerializer<T> {
 	@OptIn(InternalSerializationApi::class)
 	override val descriptor

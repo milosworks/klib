@@ -3,27 +3,37 @@ import dev.architectury.platform.Mod
 import dev.architectury.platform.Platform
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.Logger
-import xyz.milosworks.klib.KLib
+import xyz.milosworks.testmod.init.TBlocks
+import xyz.milosworks.testmod.init.TChannels
+import xyz.milosworks.testmod.init.TCreativeTabs
 
 object TestMod {
 	const val ID = "testmod"
 
 	@JvmField
-	val MOD: Mod = Platform.getMod(KLib.ID)
+	val MOD: Mod = Platform.getMod(ID)
 
 	@JvmField
 	val LOGGER: Logger = LogUtils.getLogger()
 
 	@JvmStatic
-	operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(KLib.ID, path)
+	operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ID, path)
 
 	@JvmStatic
 	fun init() {
 		if (Platform.isMinecraftForge())
 			error("LexForge is not supported. Why the hell u using this antiquated thing, switch to NeoForge.")
+
+		TChannels.init()
+		TBlocks.init()
+		TCreativeTabs.init()
 	}
 
 	@JvmStatic
 	fun initCommon() {
+	}
+
+	@JvmStatic
+	fun initClient() {
 	}
 }

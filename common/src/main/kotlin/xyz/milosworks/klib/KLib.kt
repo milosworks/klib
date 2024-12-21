@@ -26,6 +26,10 @@ object KLib {
 	}
 
 	@JvmStatic
+	fun initClient() {
+	}
+
+	@JvmStatic
 	fun initCommon() {
 	}
 }

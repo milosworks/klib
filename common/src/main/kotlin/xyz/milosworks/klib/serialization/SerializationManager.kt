@@ -345,7 +345,7 @@ object SerializationManager {
 				}
 			}
 
-			registerSerializer(NbtTag.serializer().descriptor, name = "NbtElement") {
+			registerSerializer(NbtTag.serializer().descriptor) {
 				encode(NbtEncoder::class) { encoder, codec, input ->
 					encoder.encodeNbtTag(codec.encodeStart(KOps.Nbt, input).orThrow)
 				}
