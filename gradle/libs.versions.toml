@@ -1,13 +1,13 @@
 [versions]
-kotlin = "2.0.21"
-kotlin-neoforge = "5.6.0"
-kotlin-fabric = "1.12.3+kotlin.2.0.21"
+kotlin = "2.1.0"
+kotlin-neoforge = "5.7.0"
+kotlin-fabric = "1.13.0+kotlin.2.1.0"
 kotlin-neoforge-range = "5" # Used in META-INF/neoforge.mods.tml
-kotlinx-serialization = { strictly = "[1.7.3,)", prefer = "1.7.3" }
+kotlinx-serialization = { strictly = "[1.8.0-RC,)", prefer = "1.8.0-RC" }
 
 knbt = "0.11.7"
-tomlkt = "0.3.7"
-json5k = "0.3.0"
+tomlkt = "0.4.0"
+json5k = "0.4.0-SNAPSHOT"
 
 # Minecraft
 minecraft = { strictly = "1.21.1" } # Used in META-INF/neoforge.mods.tml
@@ -16,7 +16,7 @@ parchment-mc = "1.21"
 
 architectury = "15.0.1"
 architectury-plugin = { require = "[3.4, 3.5[" }
-architectury-loom = "1.7-SNAPSHOT"
+architectury-loom = "1.9-SNAPSHOT"
 architectury-kotlin = "1.0.0"
 
 neoforge = "21.1.80"

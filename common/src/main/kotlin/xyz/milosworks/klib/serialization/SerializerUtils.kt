@@ -7,6 +7,7 @@ import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SealedSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -78,6 +79,7 @@ val <T : Any> KSerializer<T>.streamCodec: StreamCodec<RegistryFriendlyByteBuf, T
  * Returns serial descriptor that delegates all the calls to descriptor returned by [deferred] block.
  * Used to resolve cyclic dependencies between recursive serializable structures.
  */
+@OptIn(SealedSerializationApi::class)
 fun defer(deferred: () -> SerialDescriptor): SerialDescriptor = object : SerialDescriptor {
 
 	private val original: SerialDescriptor by lazy(deferred)

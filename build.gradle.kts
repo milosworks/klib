@@ -46,7 +46,7 @@ subprojects {
 
 	apply(plugin = "dev.architectury.loom")
 	apply(plugin = "architectury-plugin")
-//	apply(plugin = "com.withertech.architectury.kotlin.plugin")
+	apply(plugin = "com.withertech.architectury.kotlin.plugin")
 
 	apply(plugin = "maven-publish")
 
@@ -89,6 +89,7 @@ subprojects {
 		mavenCentral()
 		mavenLocal()
 
+		maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 		maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 		maven("https://maven.parchmentmc.org")
 		maven("https://maven.fabricmc.net/")
@@ -101,16 +102,7 @@ subprojects {
 		}
 	}
 
-	if (project.path != ":common") {
-		configure<LoomGradleExtensionAPI> {
-			mods {
-				maybeCreate("main").apply {
-					sourceSet(project.sourceSets.main.get())
-					sourceSet(project(":common").sourceSets.main.get())
-				}
-			}
-		}
-
+	if (!isCommon) {
 		configure<ArchitectPluginExtension> {
 			platformSetupLoomIde()
 		}
@@ -129,6 +121,10 @@ subprojects {
 		compileOnly(rootProject.libs.kotlinx.serialization)
 		compileOnly(kotlin("reflect"))
 
+		if (isCommon) {
+			"modApi"(rootProject.libs.architectury.common)
+		}
+
 		if (isNeoForge) {
 			"neoForge"(rootProject.libs.neoforge)
 			compileOnly(rootProject.libs.kotlin.stdlib)
@@ -146,7 +142,9 @@ subprojects {
 		}
 
 		if (!isCommon && System.getProperty("idea.sync.active", false.toString()).toBoolean()) {
-			compileOnly(project(commonPath, configuration = "namedElements"))
+			compileOnly(project(commonPath, configuration = "namedElements")) {
+				isTransitive = false
+			}
 		}
 	}
 

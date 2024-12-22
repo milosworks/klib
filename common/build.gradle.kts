@@ -8,8 +8,6 @@ dependencies {
 	api(libs.kotlinx.serialization.toml) { isTransitive = false }
 	api(libs.kotlinx.serialization.json5) { isTransitive = false }
 	api(libs.kotlinx.serialization.cbor) { isTransitive = false }
-
-	modApi(libs.architectury.common)
 }
 
 tasks {

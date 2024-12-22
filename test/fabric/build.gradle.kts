@@ -1,9 +1,6 @@
 plugins {
 	alias(libs.plugins.archie)
-}
-
-modResources {
-	filesMatching.add("fabric.mod.json")
+	alias(libs.plugins.architectury.kotlin)
 }
 
 dependencies {
@@ -12,4 +9,8 @@ dependencies {
 	}
 
 	include(implementation(projects.fabric)!!)
+}
+
+modResources {
+	filesMatching.add("fabric.mod.json")
 }

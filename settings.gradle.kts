@@ -11,7 +11,7 @@ pluginManagement {
 
 		maven("https://maven.firstdarkdev.xyz/releases")
 
-		maven("https://maven.milosworks.xyz/snapshots")
+		maven("https://maven.milosworks.xyz/releases")
 
 		gradlePluginPortal()
 	}

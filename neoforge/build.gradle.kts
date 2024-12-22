@@ -2,6 +2,7 @@ import net.kernelpanicsoft.archie.plugin.bundleRuntimeLibrary
 
 plugins {
 	alias(libs.plugins.archie)
+	alias(libs.plugins.architectury.kotlin)
 }
 
 dependencies {
