@@ -125,6 +125,12 @@ subprojects {
 			"modApi"(rootProject.libs.architectury.common)
 		}
 
+		if (!isCommon) {
+			compileOnly(project(commonPath, configuration = "namedElements")) {
+				isTransitive = false
+			}
+		}
+
 		if (isNeoForge) {
 			"neoForge"(rootProject.libs.neoforge)
 			compileOnly(rootProject.libs.kotlin.stdlib)
@@ -139,12 +145,6 @@ subprojects {
 			"modApi"(rootProject.libs.fabric.api)
 			"modApi"(rootProject.libs.architectury.fabric)
 			"modImplementation"(rootProject.libs.kotlin.fabric)
-		}
-
-		if (!isCommon && System.getProperty("idea.sync.active", false.toString()).toBoolean()) {
-			compileOnly(project(commonPath, configuration = "namedElements")) {
-				isTransitive = false
-			}
 		}
 	}
 
@@ -161,6 +161,12 @@ subprojects {
 		targetCompatibility = JavaVersion.VERSION_21
 
 		withSourcesJar()
+
+		if (isCommon) {
+			tasks.compileJava {
+				options.compilerArgs.add("-AgenerateExpectStubs")
+			}
+		}
 	}
 }
 

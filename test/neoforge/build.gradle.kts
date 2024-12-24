@@ -4,9 +4,7 @@ plugins {
 }
 
 dependencies {
-	if (System.getProperty("idea.sync.active", false.toString()).toBoolean()) {
-		compileOnly(projects.common)
-	}
+	compileOnly(projects.common) { isTransitive = false }
 
 	implementation(projects.neoforge)
 }
