@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	compileOnly(projects.common) { isTransitive = false }
+	compileOnly(projects.common)
 
 	implementation(projects.neoforge)
 }

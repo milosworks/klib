@@ -15,7 +15,3 @@ dependencies {
 modResources {
 	filesMatching.add("META-INF/neoforge.mods.toml")
 }
-
-tasks {
-	base.archivesName.set(base.archivesName.get() + "-neoforge")
-}

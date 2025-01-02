@@ -106,6 +106,17 @@ subprojects {
 		configure<ArchitectPluginExtension> {
 			platformSetupLoomIde()
 		}
+
+		sourceSets {
+			val commonSourceSets = project(commonPath).sourceSets
+			val commonMain = commonSourceSets.getByName("main")
+
+			getByName("main") {
+//				java.srcDirs(commonMain.java.srcDirs)
+				kotlin.srcDirs(commonMain.kotlin.srcDirs)
+//				resources.srcDirs(commonMain.resources.srcDirs)
+			}
+		}
 	}
 
 	@Suppress("UnstableApiUsage")
@@ -126,9 +137,7 @@ subprojects {
 		}
 
 		if (!isCommon) {
-			compileOnly(project(commonPath, configuration = "namedElements")) {
-				isTransitive = false
-			}
+			compileOnly(project(commonPath, configuration = "namedElements"))
 		}
 
 		if (isNeoForge) {

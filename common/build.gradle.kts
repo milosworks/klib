@@ -10,6 +10,6 @@ dependencies {
 	api(libs.kotlinx.serialization.cbor) { isTransitive = false }
 }
 
-tasks {
-	base.archivesName.set(base.archivesName.get() + "-common")
-}
+//tasks {
+//	base.archivesName.set(base.archivesName.get() + "-common")
+//}

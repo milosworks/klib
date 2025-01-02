@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-	compileOnly(projects.common) { isTransitive = false }
+	compileOnly(projects.common)
 
 	include(implementation(projects.fabric)!!)
 }

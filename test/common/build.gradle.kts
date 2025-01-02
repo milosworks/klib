@@ -1,3 +1,3 @@
 dependencies {
-	implementation(projects.common) { isTransitive = false }
+	implementation(projects.common)
 }
