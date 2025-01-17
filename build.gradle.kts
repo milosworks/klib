@@ -43,22 +43,8 @@ val modVersion = ("TAG".env ?: "mod_version".prop)!!
 subprojects {
 	apply(plugin = "dev.architectury.loom")
 
-	//	apply(plugin = "org.jetbrains.compose")
-//	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
-
 	configure<LoomGradleExtensionAPI> {
 		silentMojangMappingsLicense()
-
-//		runs {
-//			named("client") {
-//				name("Test Client")
-//				source(sourceSets.test.get())
-//			}
-//			named("server") {
-//				name("Test Server")
-//				source(sourceSets.test.get())
-//			}
-//		}
 	}
 
 	repositories {
@@ -97,6 +83,7 @@ allprojects {
 	apply(plugin = "org.jetbrains.kotlin.jvm")
 	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
 	apply(plugin = "org.jetbrains.compose")
+	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
 
 	apply(plugin = "architectury-plugin")
 	apply(plugin = "com.withertech.architectury.kotlin.plugin")

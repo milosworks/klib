@@ -6,6 +6,10 @@ import dev.architectury.platform.Platform
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.Logger
 import xyz.milosworks.klib.KLib
+import xyz.milosworks.klib.test.init.TBlocks
+import xyz.milosworks.klib.test.init.TChannels
+import xyz.milosworks.klib.test.init.TCreativeTabs
+import xyz.milosworks.klib.test.init.TMenus
 
 /** @suppress supress for dokka */
 object KTest {
@@ -26,6 +30,10 @@ object KTest {
 
 	@JvmStatic
 	fun initClient() {
+		TBlocks.init()
+		TChannels.init()
+		TCreativeTabs.init()
+		TMenus.init()
 	}
 
 	@JvmStatic

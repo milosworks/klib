@@ -3,9 +3,9 @@ kotlin = "2.1.0"
 kotlin-neoforge = "5.7.0"
 kotlin-fabric = "1.13.0+kotlin.2.1.0"
 kotlin-neoforge-range = "5" # Used in META-INF/neoforge.mods.tml
-kotlinx-serialization = { strictly = "[1.8.0-RC,)", prefer = "1.8.0-RC" }
+kotlinx-serialization = { strictly = "[1.8.0,)", prefer = "1.8.0" }
 
-knbt = "0.11.7"
+knbt = "0.11.8"
 tomlkt = "0.4.0"
 json5k = "0.4.0-SNAPSHOT"
 

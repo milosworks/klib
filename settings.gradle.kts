@@ -22,17 +22,3 @@ plugins {
 }
 
 include("common", "fabric", "neoforge")
-
-includeModule("test")
-
-fun includeModule(name: String) {
-	includeModule(name, "common")
-	includeModule(name, "fabric")
-	includeModule(name, "neoforge")
-}
-
-fun includeModule(name: String, platform: String) {
-	include("$name/$platform")
-	project(":$name/$platform").name = "${rootProject.name}-$name-$platform"
-}
-

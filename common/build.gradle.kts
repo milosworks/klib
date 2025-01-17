@@ -9,7 +9,7 @@ architectury {
 
 dependencies {
 	compileOnly(kotlin("reflect"))
-	compileOnly(rootProject.libs.kotlinx.serialization)
+	compileOnly(libs.kotlinx.serialization)
 	compileOnly(libs.kotlinx.serialization.json)
 	api(libs.kotlinx.serialization.nbt) { isTransitive = false }
 	api(libs.kotlinx.serialization.toml) { isTransitive = false }
