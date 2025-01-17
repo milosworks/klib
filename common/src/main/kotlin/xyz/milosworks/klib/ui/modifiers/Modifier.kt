@@ -82,6 +82,7 @@ interface Modifier {
 
 		fun mergeWith(other: Self): Self
 
+		@Suppress("UNCHECKED_CAST")
 		fun unsafeMergeWith(other: Element<*>) = mergeWith(other as Self)
 	}
 

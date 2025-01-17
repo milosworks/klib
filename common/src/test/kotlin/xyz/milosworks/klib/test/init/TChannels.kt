@@ -8,7 +8,7 @@ object TChannels {
 	val CHANNEL = NetworkChannel(KTest["main"])
 
 	fun init() {
-		CHANNEL.register()
 		TPackets.init()
+		CHANNEL.register()
 	}
 }

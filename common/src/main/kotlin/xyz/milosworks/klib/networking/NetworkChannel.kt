@@ -64,7 +64,8 @@ internal val PayloadCodec = Payload.serializer().streamCodec
  * @param id The unique identifier for this network channel.
  */
 class NetworkChannel(private val id: ResourceLocation) {
-	private val packetId = CustomPacketPayload.Type<Payload>(id)
+	private val clientPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("client"))
+	private val serverPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("server"))
 
 	private val serverClasses = mutableListOf<KClass<*>>()
 	private val clientClasses = mutableListOf<KClass<*>>()
@@ -272,7 +273,7 @@ class NetworkChannel(private val id: ResourceLocation) {
 	 */
 	@Suppress("UNCHECKED_CAST")
 	fun register() {
-		NetworkManager.registerReceiver(NetworkManager.Side.S2C, packetId, PayloadCodec) { payload, ctx ->
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, serverPacketId, PayloadCodec) { payload, ctx ->
 			val klass = clientClasses.getOrNull(payload.index)
 				?: throw NoSuchElementException("No class was found on the clientside. Did you forget to do clientbound?")
 
@@ -289,7 +290,7 @@ class NetworkChannel(private val id: ResourceLocation) {
 			})
 		}
 
-		NetworkManager.registerReceiver(NetworkManager.Side.C2S, packetId, PayloadCodec) { payload, ctx ->
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, clientPacketId, PayloadCodec) { payload, ctx ->
 			val klass = serverClasses.getOrNull(payload.index)
 				?: throw NoSuchElementException("No class was found on the serverside. Did you forget to do serverbound?")
 

@@ -31,7 +31,7 @@ modpublisher = "2.1.6"
 # Other
 dokka = "2.0.0-Beta"
 shadow = "8.3.0"
-compose = "1.7.1"
+compose = "1.7.3"
 archie = "1.0.0"
 
 [bundles]

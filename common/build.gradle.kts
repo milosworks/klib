@@ -9,12 +9,18 @@ architectury {
 
 dependencies {
 	compileOnly(kotlin("reflect"))
-	compileOnly(libs.kotlinx.serialization)
+	compileOnlyApi(libs.kotlinx.serialization)
 	compileOnly(libs.kotlinx.serialization.json)
+
+	testCompileOnly(kotlin("reflect"))
+	testCompileOnly(libs.kotlinx.serialization)
+	testCompileOnly(libs.kotlinx.serialization.json)
+
 	api(libs.kotlinx.serialization.nbt) { isTransitive = false }
 	api(libs.kotlinx.serialization.toml) { isTransitive = false }
 	api(libs.kotlinx.serialization.json5) { isTransitive = false }
 	api(libs.kotlinx.serialization.cbor) { isTransitive = false }
+
 	api(compose.runtime)
 
 	modApi(libs.architectury.common)

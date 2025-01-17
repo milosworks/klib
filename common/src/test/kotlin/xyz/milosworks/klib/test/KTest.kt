@@ -26,14 +26,15 @@ object KTest {
 
 	@JvmStatic
 	fun init() {
-	}
-
-	@JvmStatic
-	fun initClient() {
 		TBlocks.init()
 		TChannels.init()
 		TCreativeTabs.init()
 		TMenus.init()
+	}
+
+	@JvmStatic
+	fun initClient() {
+		TMenus.initClient()
 	}
 
 	@JvmStatic

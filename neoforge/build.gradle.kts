@@ -43,6 +43,8 @@ loom {
 
 dependencies {
 	compileOnly(libs.kotlin.stdlib)
+	testCompileOnly(libs.kotlin.stdlib)
+
 	neoForge(libs.neoforge)
 	modApi(libs.architectury.neoforge)
 	implementation(libs.kotlin.neoforge) {
@@ -53,6 +55,8 @@ dependencies {
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
+
+	bundleRuntimeLibrary(compose.runtime)
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)
 
