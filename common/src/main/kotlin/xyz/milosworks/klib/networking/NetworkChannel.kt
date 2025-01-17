@@ -116,7 +116,7 @@ class NetworkChannel(private val id: ResourceLocation) {
 		packets.map {
 			@Suppress("UNCHECKED_CAST")
 			val klass = serverClasses.find { x -> x == it::class } as? KClass<T>
-				?: throw IllegalStateException()
+				?: throw IllegalStateException("Trying to send a packet to server but it hasn't registered the packet and its handler")
 			val index = serverClasses.indexOf(klass)
 			val bytes = SerializationManager.cbor.encodeToByteArray(klass.serializer(), it)
 

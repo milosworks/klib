@@ -1,14 +1,15 @@
-package xyz.milosworks.klib
+package xyz.milosworks.klib.test
 
 import com.mojang.logging.LogUtils
 import dev.architectury.platform.Mod
 import dev.architectury.platform.Platform
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.Logger
+import xyz.milosworks.klib.KLib
 
 /** @suppress supress for dokka */
-object KLib {
-	const val ID = "klib"
+object KTest {
+	const val ID = "${KLib.ID}_test"
 
 	@JvmField
 	val MOD: Mod = Platform.getMod(ID)

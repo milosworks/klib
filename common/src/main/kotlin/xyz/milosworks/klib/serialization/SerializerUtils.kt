@@ -15,9 +15,28 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.serializer
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec
 import com.google.gson.JsonElement as GsonElement
+
+/**
+ * Gets data from a [RegistryFriendlyByteBuf] using the provided [KSerializer]
+ */
+fun <T : Any> RegistryFriendlyByteBuf.read(serializer: KSerializer<T>): T =
+	SerializationManager.cbor.decodeFromByteArray(serializer, readByteArray())
+
+/**
+ * Writes data into a [RegistryFriendlyByteBuf] using the [KSerializer] using the class of the data
+ */
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> RegistryFriendlyByteBuf.write(data: T) = write(data::class.serializer() as KSerializer<T>, data)
+
+/**
+ * Writes data into a [RegistryFriendlyByteBuf] using a [KSerializer]
+ */
+fun <T : Any> RegistryFriendlyByteBuf.write(serializer: KSerializer<T>, data: T) =
+	writeBytes(SerializationManager.cbor.encodeToByteArray(serializer, data))
 
 /**
  * Converts a [Codec] into a [KSerializer].

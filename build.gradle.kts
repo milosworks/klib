@@ -10,18 +10,17 @@ plugins {
 	java
 	idea
 
-	alias(libs.plugins.kotlin.jvm)
-	alias(libs.plugins.kotlin.serialization)
-
 	alias(libs.plugins.architectury)
-	alias(libs.plugins.architectury.kotlin)
+	alias(libs.plugins.architectury.kotlin) apply false
 	alias(libs.plugins.architectury.loom) apply false
 
-//	alias(libs.plugins.kotlin.compose)
-//	alias(libs.plugins.kotlin.compose.plugin) apply false
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.kotlin.serialization)
+	alias(libs.plugins.kotlin.compose) apply false
+	alias(libs.plugins.kotlin.compose.plugin) apply false
 
 	alias(libs.plugins.modfusioner)
-	alias(libs.plugins.archie) apply false
+//	alias(libs.plugins.modpublisher)
 
 	alias(libs.plugins.dokka)
 }
@@ -39,50 +38,27 @@ val String.env: String?
 val String.localOrEnv: String?
 	get() = localProperties?.get(this)?.toString() ?: System.getenv(this.uppercase())
 
+val modVersion = ("TAG".env ?: "mod_version".prop)!!
+
 subprojects {
-	apply(plugin = "java")
-	apply(plugin = "org.jetbrains.kotlin.jvm")
-	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-
 	apply(plugin = "dev.architectury.loom")
-	apply(plugin = "architectury-plugin")
-	apply(plugin = "com.withertech.architectury.kotlin.plugin")
-
-	apply(plugin = "maven-publish")
 
 	//	apply(plugin = "org.jetbrains.compose")
 //	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
 
-	val parentName = project.layout.projectDirectory.asFile.parentFile.name
-	val modLoader = project.layout.projectDirectory.asFile.name
-
-	val isCommon = modLoader == "common"
-	val isNeoForge = modLoader == "neoforge"
-	val isFabric = modLoader == "fabric"
-
-	val commonPath = when {
-		isCommon -> project.name
-		parentName != "test" -> ":common"
-		else -> ":${rootProject.name}-$parentName-common"
-	}
-
-	base {
-		archivesName.set("${project.name}-${rootProject.libs.versions.minecraft.get()}")
-	}
-
 	configure<LoomGradleExtensionAPI> {
 		silentMojangMappingsLicense()
 
-		runs {
-			named("client") {
-				name("Test Client")
-				source(sourceSets.test.get())
-			}
-			named("server") {
-				name("Test Server")
-				source(sourceSets.test.get())
-			}
-		}
+//		runs {
+//			named("client") {
+//				name("Test Client")
+//				source(sourceSets.test.get())
+//			}
+//			named("server") {
+//				name("Test Server")
+//				source(sourceSets.test.get())
+//			}
+//		}
 	}
 
 	repositories {
@@ -102,91 +78,38 @@ subprojects {
 		}
 	}
 
-	if (!isCommon) {
-		configure<ArchitectPluginExtension> {
-			platformSetupLoomIde()
-		}
-
-		sourceSets {
-			val commonSourceSets = project(commonPath).sourceSets
-			val commonMain = commonSourceSets.getByName("main")
-
-			getByName("main") {
-//				java.srcDirs(commonMain.java.srcDirs)
-				kotlin.srcDirs(commonMain.kotlin.srcDirs)
-//				resources.srcDirs(commonMain.resources.srcDirs)
-			}
-		}
-	}
-
 	@Suppress("UnstableApiUsage")
 	dependencies {
 		"minecraft"(rootProject.libs.minecraft)
-
 		"mappings"(project.the<LoomGradleExtensionAPI>().layered {
 			officialMojangMappings()
 			parchment(rootProject.libs.parchment)
 		})
 
 		compileOnly("org.jetbrains:annotations:24.1.0")
-		compileOnly(rootProject.libs.kotlinx.serialization)
-		compileOnly(kotlin("reflect"))
-
-		if (isCommon) {
-			"modApi"(rootProject.libs.architectury.common)
-		}
-
-		if (!isCommon) {
-			compileOnly(project(commonPath, configuration = "namedElements"))
-		}
-
-		if (isNeoForge) {
-			"neoForge"(rootProject.libs.neoforge)
-			compileOnly(rootProject.libs.kotlin.stdlib)
-			"modApi"(rootProject.libs.architectury.neoforge)
-			implementation(rootProject.libs.kotlin.neoforge) {
-				exclude(group = "net.neoforged.fancymodloader", module = "loader")
-			}
-		}
-
-		if (isFabric) {
-			"modImplementation"(rootProject.libs.fabric.loader)
-			"modApi"(rootProject.libs.fabric.api)
-			"modApi"(rootProject.libs.architectury.fabric)
-			"modImplementation"(rootProject.libs.kotlin.fabric)
-		}
-	}
-
-	tasks.named<RemapJarTask>("remapJar") {
-		archiveClassifier.set(null as String?)
-	}
-
-	java {
-		toolchain {
-			languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_21.toString()))
-		}
-
-		sourceCompatibility = JavaVersion.VERSION_21
-		targetCompatibility = JavaVersion.VERSION_21
-
-		withSourcesJar()
-
-		if (isCommon) {
-			tasks.compileJava {
-				options.compilerArgs.add("-AgenerateExpectStubs")
-			}
-		}
 	}
 }
 
 allprojects {
-//	apply(plugin = "com.withertech.architectury.kotlin.plugin")
+	apply(plugin = "java")
+	apply(plugin = "idea")
+
+	apply(plugin = "org.jetbrains.kotlin.jvm")
+	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+	apply(plugin = "org.jetbrains.compose")
+
+	apply(plugin = "architectury-plugin")
+	apply(plugin = "com.withertech.architectury.kotlin.plugin")
+
+//	apply(plugin = "maven-publish")
+
+	version = modVersion
+	group = "mod_group".prop!!
+	base.archivesName = "mod_id".prop!!
 
 	tasks {
 		withType<JavaCompile> {
 			options.encoding = "UTF-8"
-			sourceCompatibility = JavaVersion.VERSION_21.toString()
-			targetCompatibility = JavaVersion.VERSION_21.toString()
 			options.release.set(JavaVersion.VERSION_21.toString().toInt())
 		}
 
@@ -199,8 +122,17 @@ allprojects {
 		}
 	}
 
+	java.withSourcesJar()
+
 	architectury {
 		compileOnly()
+	}
+
+	idea {
+		module {
+			isDownloadSources = true
+			isDownloadJavadoc = true
+		}
 	}
 }
 
