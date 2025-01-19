@@ -1,6 +1,7 @@
 package xyz.milosworks.klib.test
 
 import com.mojang.logging.LogUtils
+import dev.architectury.event.events.client.ClientLifecycleEvent
 import dev.architectury.platform.Mod
 import dev.architectury.platform.Platform
 import net.minecraft.resources.ResourceLocation
@@ -34,7 +35,9 @@ object KTest {
 
 	@JvmStatic
 	fun initClient() {
-		TMenus.initClient()
+		ClientLifecycleEvent.CLIENT_SETUP.register {
+			TMenus.initClient()
+		}
 	}
 
 	@JvmStatic
