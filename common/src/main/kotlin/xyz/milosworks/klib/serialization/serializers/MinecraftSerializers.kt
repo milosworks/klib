@@ -5,7 +5,6 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ByteArraySerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.SerializersModule
@@ -163,10 +162,122 @@ object GlobalPosSerializer : KSerializer<GlobalPos> {
 	}
 }
 
-val Vec3iSerializer = vectorSerializer<Int, Vec3i>(::Vec3i) { Triple(x, y, z) }
-val Vec3Serializer = vectorSerializer<Double, Vec3>(::Vec3) { Triple(x, y, z) }
+object Vec3iSerializer : KSerializer<Vec3i> {
+	override val descriptor = buildClassSerialDescriptor("Vec3i") {
+		element<Int>("x")
+		element<Int>("y")
+		element<Int>("z")
+	}
 
-val BlockPosSerializer = vectorSerializer<Int, BlockPos>(::BlockPos) { Triple(x, y, z) }
+	override fun serialize(encoder: Encoder, value: Vec3i) {
+		encoder.encodeStructure(descriptor) {
+			encodeIntElement(descriptor, 0, value.x)
+			encodeIntElement(descriptor, 1, value.y)
+			encodeIntElement(descriptor, 2, value.z)
+		}
+	}
+
+	override fun deserialize(decoder: Decoder): Vec3i {
+		return decoder.decodeStructure(descriptor) {
+			var x: Int? = null
+			var y: Int? = null
+			var z: Int? = null
+
+			while (true) {
+				when (val index = decodeElementIndex(descriptor)) {
+					0 -> x = decodeIntElement(descriptor, 0)
+					1 -> y = decodeIntElement(descriptor, 1)
+					2 -> z = decodeIntElement(descriptor, 2)
+					CompositeDecoder.DECODE_DONE -> break
+					else -> throw SerializationException("Unexpected index: $index")
+				}
+			}
+
+			if (x == null || y == null || z == null)
+				throw SerializationException("Error when decoding Vec3i, incomplete data")
+
+			Vec3i(x, y, z)
+		}
+	}
+}
+
+object Vec3Serializer : KSerializer<Vec3> {
+	override val descriptor = buildClassSerialDescriptor("Vec3") {
+		element<Double>("x")
+		element<Double>("y")
+		element<Double>("z")
+	}
+
+	override fun serialize(encoder: Encoder, value: Vec3) {
+		encoder.encodeStructure(descriptor) {
+			encodeDoubleElement(descriptor, 0, value.x)
+			encodeDoubleElement(descriptor, 1, value.y)
+			encodeDoubleElement(descriptor, 2, value.z)
+		}
+	}
+
+	override fun deserialize(decoder: Decoder): Vec3 {
+		return decoder.decodeStructure(descriptor) {
+			var x: Double? = null
+			var y: Double? = null
+			var z: Double? = null
+
+			while (true) {
+				when (val index = decodeElementIndex(descriptor)) {
+					0 -> x = decodeDoubleElement(descriptor, 0)
+					1 -> y = decodeDoubleElement(descriptor, 1)
+					2 -> z = decodeDoubleElement(descriptor, 2)
+					CompositeDecoder.DECODE_DONE -> break
+					else -> throw SerializationException("Unexpected index: $index")
+				}
+			}
+
+			if (x == null || y == null || z == null)
+				throw SerializationException("Error when decoding Vec3, incomplete data")
+
+			Vec3(x, y, z)
+		}
+	}
+}
+
+object BlockPosSerializer : KSerializer<BlockPos> {
+	override val descriptor = buildClassSerialDescriptor("BlockPos") {
+		element<Int>("x")
+		element<Int>("y")
+		element<Int>("z")
+	}
+
+	override fun serialize(encoder: Encoder, value: BlockPos) {
+		encoder.encodeStructure(descriptor) {
+			encodeIntElement(descriptor, 0, value.x)
+			encodeIntElement(descriptor, 1, value.y)
+			encodeIntElement(descriptor, 2, value.z)
+		}
+	}
+
+	override fun deserialize(decoder: Decoder): BlockPos {
+		return decoder.decodeStructure(descriptor) {
+			var x: Int? = null
+			var y: Int? = null
+			var z: Int? = null
+
+			while (true) {
+				when (val index = decodeElementIndex(descriptor)) {
+					0 -> x = decodeIntElement(descriptor, 0)
+					1 -> y = decodeIntElement(descriptor, 1)
+					2 -> z = decodeIntElement(descriptor, 2)
+					CompositeDecoder.DECODE_DONE -> break
+					else -> throw SerializationException("Unexpected index: $index")
+				}
+			}
+
+			if (x == null || y == null || z == null)
+				throw SerializationException("Error when decoding BlockPos, incomplete data")
+
+			BlockPos(x, y, z)
+		}
+	}
+}
 
 object ChunkPosSerializer : KSerializer<ChunkPos> {
 	override val descriptor = PrimitiveSerialDescriptor("ChunkPos", PrimitiveKind.LONG)
@@ -245,62 +356,4 @@ internal val MinecraftSerializersModule = SerializersModule {
 	contextual(GlobalPos::class, GlobalPosSerializer)
 
 	contextual(BlockHitResult::class, BlockHitResultSerializer)
-}
-
-internal inline fun <reified T, reified K : Any> vectorSerializer(
-	noinline constructor: (x: T, y: T, z: T) -> K,
-	crossinline getCoordinates: K.() -> Triple<T, T, T>
-): KSerializer<K> {
-	val name = K::class.simpleName ?: throw SerializationException("No name found for vector class")
-	val kind = when (T::class) {
-		Int::class -> PrimitiveKind.INT
-		Float::class -> PrimitiveKind.FLOAT
-		Double::class -> PrimitiveKind.DOUBLE
-		else -> throw IllegalArgumentException("Unsupported type for vector serialization")
-	}
-
-	@Suppress("UNCHECKED_CAST")
-	val primitiveSerializer = when (T::class) {
-		Int::class -> Int.serializer()
-		Float::class -> Float.serializer()
-		Double::class -> Double.serializer()
-		else -> throw IllegalArgumentException("Unsupported type for primitive serialization")
-	} as KSerializer<T>
-
-	return object : KSerializer<K> {
-		override val descriptor = buildClassSerialDescriptor(name) {
-			element("x", PrimitiveSerialDescriptor("x", kind))
-			element("y", PrimitiveSerialDescriptor("y", kind))
-			element("z", PrimitiveSerialDescriptor("z", kind))
-		}
-
-		override fun serialize(encoder: Encoder, value: K) {
-			val (x, y, z) = value.getCoordinates()
-
-			encoder.encodeStructure(descriptor) {
-				encodeSerializableElement(descriptor, 0, primitiveSerializer, x)
-				encodeSerializableElement(descriptor, 1, primitiveSerializer, y)
-				encodeSerializableElement(descriptor, 2, primitiveSerializer, z)
-			}
-		}
-
-		override fun deserialize(decoder: Decoder): K {
-			return decoder.decodeStructure(descriptor) {
-				var x: T? = null
-				var y: T? = null
-				var z: T? = null
-				while (true) {
-					when (val index = decodeElementIndex(descriptor)) {
-						0 -> x = decodeSerializableElement(descriptor, 0, primitiveSerializer)
-						1 -> y = decodeSerializableElement(descriptor, 1, primitiveSerializer)
-						2 -> z = decodeSerializableElement(descriptor, 2, primitiveSerializer)
-						CompositeDecoder.DECODE_DONE -> break
-						else -> throw SerializationException("Unexpected index: $index")
-					}
-				}
-				if (x == null || y == null || z == null) throw SerializationException("Error when decoding Vector, incomplete data")
-				constructor(x, y, z)
-			}
-		}
-	}
 }

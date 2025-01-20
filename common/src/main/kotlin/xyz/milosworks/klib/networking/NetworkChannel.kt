@@ -64,8 +64,8 @@ internal val PayloadCodec = Payload.serializer().streamCodec
  * @param id The unique identifier for this network channel.
  */
 class NetworkChannel(private val id: ResourceLocation) {
-	private val clientPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("client"))
-	private val serverPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("server"))
+	private val clientPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("_client"))
+	private val serverPacketId = CustomPacketPayload.Type<Payload>(id.withSuffix("_server"))
 
 	private val serverClasses = mutableListOf<KClass<*>>()
 	private val clientClasses = mutableListOf<KClass<*>>()
@@ -121,7 +121,7 @@ class NetworkChannel(private val id: ResourceLocation) {
 			val index = serverClasses.indexOf(klass)
 			val bytes = SerializationManager.cbor.encodeToByteArray(klass.serializer(), it)
 
-			Payload(id, index, bytes)
+			Payload(id.withSuffix("_client"), index, bytes)
 		}.forEach {
 			NetworkManager.sendToServer(it)
 		}
@@ -258,7 +258,7 @@ class NetworkChannel(private val id: ResourceLocation) {
 			val index = clientClasses.indexOf(klass)
 			val bytes = SerializationManager.cbor.encodeToByteArray(klass.serializer(), it)
 
-			Payload(id, index, bytes)
+			Payload(id.withSuffix("_server"), index, bytes)
 		}
 	}
 
