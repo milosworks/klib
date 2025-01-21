@@ -29,7 +29,7 @@ modfusioner = "1.0.12"
 modpublisher = "2.1.6"
 
 # Other
-dokka = "2.0.0-Beta"
+dokka = "2.0.0"
 shadow = "8.3.0"
 compose = "1.7.3"
 archie = "1.0.0"
@@ -59,6 +59,8 @@ fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-l
 fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
 
 neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
+
+dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -5,6 +5,8 @@ plugins {
 	alias(libs.plugins.archie)
 	alias(libs.plugins.kotlin.compose)
 	alias(libs.plugins.kotlin.compose.plugin)
+
+	`dokka-convention`
 }
 
 architectury {

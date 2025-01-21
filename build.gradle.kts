@@ -1,7 +1,4 @@
-import dev.architectury.plugin.ArchitectPluginExtension
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import net.fabricmc.loom.task.RemapJarTask
-import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.konan.properties.loadProperties
@@ -19,10 +16,8 @@ plugins {
 	alias(libs.plugins.kotlin.compose) apply false
 	alias(libs.plugins.kotlin.compose.plugin) apply false
 
-	alias(libs.plugins.modfusioner)
 //	alias(libs.plugins.modpublisher)
-
-	alias(libs.plugins.dokka)
+	`dokka-convention`
 }
 
 architectury.minecraft = libs.versions.minecraft.get()
@@ -124,59 +119,10 @@ allprojects {
 	}
 }
 
-dokka {
-	moduleName.set("KLibrary")
-
-	dokkaSourceSets.main {
-		documentedVisibilities(
-			VisibilityModifier.Package,
-			VisibilityModifier.Public,
-			VisibilityModifier.Protected
-		)
-
-		perPackageOption {
-			matchingRegex.set(".*internal.*")
-		}
-
-		sourceLink {
-//			localDirectory.set(file("src/main/kotlin"))
-			remoteUrl("https://github.com/milosworks/klib")
-			remoteLineSuffix.set("#L")
-		}
-	}
-
-	pluginsConfiguration.html {
-		footerMessage.set("MilosWorks")
-	}
-
-	dokkaPublications.html {
-		suppressInheritedMembers = true
-		outputDirectory.set(layout.buildDirectory.dir("docs"))
-	}
-}
-
-fusioner {
-	packageGroup = project.group.toString()
-	mergedJarName = "${project.base.archivesName.get()}-merged-${libs.versions.minecraft.get()}"
-	jarVersion = project.version.toString()
-	outputDirectory = "build/artifacts"
-
-	fabric {
-		inputTaskName = "remapJar"
-	}
-
-	neoforge {
-		inputTaskName = "remapJar"
-	}
-}
-
-tasks {
-	build {
-		finalizedBy(fusejars)
-	}
-	assemble {
-		finalizedBy(fusejars)
-	}
+dependencies {
+	dokka(projects.common)
+	dokka(projects.fabric)
+	dokka(projects.neoforge)
 }
 
 idea {

@@ -22,3 +22,4 @@ plugins {
 }
 
 include("common", "fabric", "neoforge")
+

@@ -1,6 +1,8 @@
 plugins {
 	alias(libs.plugins.kotlin.compose)
 	alias(libs.plugins.kotlin.compose.plugin)
+
+	`dokka-convention`
 }
 
 architectury {
@@ -28,4 +30,10 @@ dependencies {
 
 tasks {
 	base.archivesName.set(base.archivesName.get() + "-common")
+}
+
+dokka {
+	dokkaSourceSets.configureEach {
+		includes.from("Common.md")
+	}
 }
