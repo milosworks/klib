@@ -27,6 +27,9 @@ import kotlin.reflect.KProperty
  * @property registry The registry to where the entries will be registered to
  */
 open class RegistryHelper<T : Any>(val registry: DeferredRegister<T>) {
+	/**
+	 * Registers this helper, this needs to be called in the init method of your mod.
+	 */
 	open fun init() = registry.register()
 
 	/**

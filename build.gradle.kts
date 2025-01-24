@@ -11,13 +11,11 @@ plugins {
 	alias(libs.plugins.architectury.kotlin) apply false
 	alias(libs.plugins.architectury.loom) apply false
 
-	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.kotlin.compose) apply false
 	alias(libs.plugins.kotlin.compose.plugin) apply false
 
 //	alias(libs.plugins.modpublisher)
-	`dokka-convention`
 }
 
 architectury.minecraft = libs.versions.minecraft.get()
@@ -119,11 +117,11 @@ allprojects {
 	}
 }
 
-dependencies {
-	dokka(projects.common)
-	dokka(projects.fabric)
-	dokka(projects.neoforge)
-}
+//dependencies {
+//	dokka(projects.common)
+//	dokka(projects.fabric)
+//	dokka(projects.neoforge)
+//}
 
 idea {
 	module {

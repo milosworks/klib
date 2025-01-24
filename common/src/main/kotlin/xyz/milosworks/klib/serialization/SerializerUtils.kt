@@ -117,6 +117,11 @@ fun defer(deferred: () -> SerialDescriptor): SerialDescriptor = object : SerialD
 	override fun isElementOptional(index: Int): Boolean = original.isElementOptional(index)
 }
 
+/**
+ * Used for [KSerializer.codec], you could extend this class to make any modifications you like.
+ *
+ * **Note:** It is HIGHLY recommended to just use the extension function [KSerializer.codec] instead of manually using this class.
+ */
 open class SerializerCodec<T : Any>(private val serializer: KSerializer<T>) : Codec<T> {
 	@Suppress("UNCHECKED_CAST")
 	override fun <V : Any> encode(input: T, ops: DynamicOps<V>, prefix: V): DataResult<V> {
@@ -152,6 +157,11 @@ internal fun <T : Any> tryOrThrow(action: () -> T): DataResult<T> {
 	}
 }
 
+/**
+ * Used for [Codec.kSerializer], you could extend this class to make any modifications you like.
+ *
+ * **Note:** It is HIGHLY recommended to just use the extension function [Codec.kSerializer] instead of manually using this class.
+ */
 @Suppress("UNCHECKED_CAST")
 open class CodecSerializer<T>(private val codec: Codec<T>) : KSerializer<T> {
 	@OptIn(InternalSerializationApi::class)

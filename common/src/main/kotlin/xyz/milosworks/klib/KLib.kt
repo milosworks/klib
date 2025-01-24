@@ -6,7 +6,7 @@ import dev.architectury.platform.Platform
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.Logger
 
-/** @suppress supress for dokka */
+/** @suppress suppress for dokka */
 object KLib {
 	const val ID = "klib"
 

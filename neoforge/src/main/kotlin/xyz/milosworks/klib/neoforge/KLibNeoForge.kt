@@ -7,6 +7,7 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent
 import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 import xyz.milosworks.klib.KLib
 
+/** @suppress suppress for dokka */
 @Mod(KLib.ID)
 object KLibNeoForge {
 	init {

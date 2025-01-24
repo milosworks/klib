@@ -13,13 +13,13 @@
 		"main": [
 			{
 				"adapter": "kotlin",
-				"value": "xyz.milosworks.klib.fabric.KLibFabric"
+				"value": "xyz.milosworks.klib.test.KTestFabric"
 			}
 		],
 		"client": [
 			{
 				"adapter": "kotlin",
-				"value": "xyz.milosworks.klib.fabric.KLibFabric"
+				"value": "xyz.milosworks.klib.test.KTestFabric"
 			}
 		]
 	},

@@ -33,7 +33,9 @@ tasks {
 }
 
 dokka {
+	moduleName.set("Common")
+
 	dokkaSourceSets.configureEach {
-		includes.from("Common.md")
+		includes.from("ModuleCommon.md")
 	}
 }

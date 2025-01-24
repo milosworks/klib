@@ -113,3 +113,11 @@ tasks {
 }
 
 base.archivesName.set(base.archivesName.get() + "-neoforge")
+
+dokka {
+	moduleName.set("NeoForge")
+
+	dokkaSourceSets.configureEach {
+		includes.from("ModuleNeoForge.md")
+	}
+}

@@ -17,6 +17,7 @@ import java.util.stream.IntStream
 import java.util.stream.LongStream
 import java.util.stream.Stream
 
+/** @suppress */
 object KOps {
 	object Json : DynamicOps<JsonElement> {
 		override fun empty(): JsonElement = JsonNull

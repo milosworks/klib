@@ -53,6 +53,7 @@ dependencies {
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
+	
 	bundleRuntimeLibrary(compose.runtime)
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)
@@ -109,3 +110,11 @@ tasks {
 }
 
 base.archivesName.set(base.archivesName.get() + "-fabric")
+
+dokka {
+	moduleName.set("Fabric")
+
+	dokkaSourceSets.configureEach {
+		includes.from("ModuleFabric.md")
+	}
+}

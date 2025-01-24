@@ -10,9 +10,9 @@ tomlkt = "0.4.0"
 json5k = "0.4.0-SNAPSHOT"
 
 # Minecraft
-minecraft = { strictly = "1.21.1" } # Used in META-INF/neoforge.mods.tml
+minecraft = { strictly = "1.21.1" }
 parchment = "2024.07.28"
-parchment-mc = "1.21"
+#parchment-mc = "1.21"
 
 architectury = "13.0.8"
 architectury-plugin = { require = "[3.4, 3.5[" }
@@ -39,6 +39,7 @@ archie = "1.0.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-neoforge = { module = "thedarkcolour:kotlinforforge-neoforge", version.ref = "kotlin-neoforge" }
 kotlin-fabric = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "kotlin-fabric" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
@@ -63,7 +64,7 @@ neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+#kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 kotlin-compose-plugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
@@ -72,9 +73,9 @@ architectury = { id = "architectury-plugin", version.ref = "architectury-plugin"
 architectury-loom = { id = "dev.architectury.loom", version.ref = "architectury-loom" }
 architectury-kotlin = { id = "com.withertech.architectury.kotlin.plugin", version.ref = "architectury-kotlin" }
 
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+#dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
-modfusioner = { id = "com.hypherionmc.modutils.modfusioner", version.ref = "modfusioner" }
+#modfusioner = { id = "com.hypherionmc.modutils.modfusioner", version.ref = "modfusioner" }
 modpublisher = { id = "com.hypherionmc.modutils.modpublisher", version.ref = "modpublisher" }
 archie = { id = "net.kernelpanicsoft.archie.plugin", version.ref = "archie" }

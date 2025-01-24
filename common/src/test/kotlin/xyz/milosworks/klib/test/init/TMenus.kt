@@ -9,9 +9,10 @@ import xyz.milosworks.klib.test.KTest
 import xyz.milosworks.klib.test.client.ui.UIMenu
 import xyz.milosworks.klib.test.client.ui.UIScreen
 
-object TMenus : RegistryHelper<MenuType<*>>(DeferredRegister.create(KTest.ID,  Registries.MENU)) {
+object TMenus : RegistryHelper<MenuType<*>>(DeferredRegister.create(KTest.ID, Registries.MENU)) {
+	@Suppress("DEPRECATION", "removal")
 	val UI = register("ui") { ->
-		MenuRegistry.ofExtended { id, inventory, buf -> UIMenu.getProvider(id, inventory.player) }
+		MenuRegistry.of(::UIMenu)
 	}
 
 	fun initClient() {

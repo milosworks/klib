@@ -1,6 +1,7 @@
 package xyz.milosworks.klib.test.client.ui
 
 import androidx.compose.runtime.Composable
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import xyz.milosworks.klib.ui.ComposeContainerScreen
@@ -11,11 +12,9 @@ import xyz.milosworks.klib.ui.layout.Row
 class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 	ComposeContainerScreen<UIMenu>(menu, inventory, title) {
 
-	private val rows = 10
-
 	init {
-		this.imageHeight = 114 + rows * 18
-		this.inventoryLabelY = this.imageHeight - 94
+//		this.imageHeight = 114 + 10 * 18
+//		this.inventoryLabelY = this.imageHeight - 94
 		start {
 			content()
 		}
@@ -24,7 +23,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 	@Composable
 	fun content() {
 		Column {
-			for (i in 0 until rows) {
+			for (i in 0 until 10) {
 				Row {
 					for (j in 0 until 9) {
 						Slot()
@@ -33,4 +32,6 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 			}
 		}
 	}
+
+	override fun renderLabels(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {}
 }
