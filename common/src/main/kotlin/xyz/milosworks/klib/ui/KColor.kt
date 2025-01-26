@@ -49,12 +49,12 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		/**
 		 * Create a Color from the decimal version of an argb color.
 		 */
-		fun ofArgb(argb: Int): KColor {
+		fun ofArgb(argb: Long): KColor {
 			return KColor(
-				((argb shr 16) and 0xFF) / 255,
-				((argb shr 8) and 0xFF) / 255,
-				(argb and 0xFF) / 255,
-				(argb ushr 24) / 255
+				(argb shr 24).toInt(),
+				(argb shr 16 and 255).toInt(),
+				(argb shr 8 and 255).toInt(),
+				(argb and 255).toInt()
 			)
 		}
 
@@ -63,9 +63,9 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		 */
 		fun ofRgb(rgb: Int): KColor {
 			return KColor(
-				((rgb shr 16) and 0xFF) / 255,
-				((rgb shr 8) and 0xFF) / 255,
-				(rgb and 0xFF) / 255
+				rgb shr 16 and 255,
+				rgb shr 8 and 255,
+				rgb and 255
 			)
 		}
 
@@ -75,7 +75,6 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		fun ofHsv(hue: Float, saturation: Float, value: Float): KColor {
 			// owo-lib calls 0.5e-7f the funny number "do not turn a hue value of 1f into yellow" constant.
 			return ofRgb(Mth.hsvToRgb(hue - 0.5e-7f, saturation, value))
-
 		}
 
 		/**
@@ -83,7 +82,7 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		 */
 		fun ofHsv(hue: Float, saturation: Float, value: Float, alpha: Float): KColor {
 			// owo-lib calls 0.5e-7f the funny number "do not turn a hue value of 1f into yellow" constant.
-			return ofArgb((alpha * 255).toInt() shl 24 or Mth.hsvToRgb(hue - 0.5e-7f, saturation, value))
+			return ofArgb(((alpha * 255).toInt() shl 24 or Mth.hsvToRgb(hue - 0.5e-7f, saturation, value)).toLong())
 		}
 
 		/**
@@ -97,7 +96,7 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		 * Create a Color based on the Dye color.
 		 */
 		fun ofDye(dye: DyeColor): KColor {
-			return ofArgb(dye.textureDiffuseColor)
+			return ofArgb(dye.textureDiffuseColor.toLong())
 		}
 
 		/**
@@ -105,9 +104,9 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
 		 */
 		fun random(alpha: Boolean = true): KColor {
 			return if (alpha) {
-				ofArgb((Random.nextInt(0x1000000) or 0xFF000000.toInt())) // ofArgb((Math.random() * 0xFFFFFF).roundToInt() or 0xFF000000.toInt())
+				ofArgb((Random.nextLong(0x100000000) or (0xFF000000L)))
 			} else {
-				ofRgb(Random.nextInt(0x1000000)) // ofRgb((Math.random() * 0xFFFFFF).roundToInt())
+				ofRgb(Random.nextInt(0x1000000))
 			}
 		}
 	}

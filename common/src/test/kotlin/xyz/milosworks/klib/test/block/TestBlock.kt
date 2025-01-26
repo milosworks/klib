@@ -8,16 +8,14 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionResult
-import net.minecraft.world.MenuProvider
-import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.SimpleMenuProvider
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import xyz.milosworks.klib.test.client.ui.UIMenu
 import xyz.milosworks.klib.test.init.TChannels.CHANNEL
-import xyz.milosworks.klib.test.init.TMenus.UI
 import xyz.milosworks.klib.test.networking.TPackets
 
 class TestBlock(props: Properties) : Block(props) {
@@ -46,15 +44,7 @@ class TestBlock(props: Properties) : Block(props) {
 		if (player is ServerPlayer) {
 			MenuRegistry.openMenu(
 				player,
-				object : MenuProvider {
-					override fun createMenu(i: Int, inventory: Inventory, player: Player): AbstractContainerMenu {
-						return UI.get().create(i, inventory)
-					}
-
-					override fun getDisplayName(): Component? {
-						return Component.literal("")
-					}
-				}
+				SimpleMenuProvider({ id, inventory, player -> UIMenu(id, inventory) }, Component.literal(""))
 			)
 		}
 
