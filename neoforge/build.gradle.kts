@@ -10,7 +10,6 @@ plugins {
 }
 
 architectury {
-	platformSetupLoomIde()
 	neoForge()
 }
 
@@ -59,6 +58,9 @@ dependencies {
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
 
 	bundleRuntimeLibrary(compose.runtime)
+//	bundleRuntimeLibrary(compose("org.jetbrains.compose.runtime:runtime-desktop"))
+//	bundleRuntimeLibrary(compose.runtimeSaveable)
+//	bundleRuntimeLibrary("androidx.collection:collection-jvm:1.4.0")
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)
 

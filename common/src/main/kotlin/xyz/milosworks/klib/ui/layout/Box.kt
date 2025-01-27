@@ -14,7 +14,7 @@ fun Box(
 	Layout(
 		measurePolicy,
 		modifier = modifier,
-		content = content
+		content = content,
 	)
 }
 

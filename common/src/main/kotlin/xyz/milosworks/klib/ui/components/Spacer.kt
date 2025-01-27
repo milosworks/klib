@@ -13,17 +13,14 @@ import xyz.milosworks.klib.ui.nodes.UINode
 @Composable
 fun Spacer(modifier: Modifier = Modifier) {
 	var background: BackgroundModifier? = null
-	var size: SizeModifier? = null
 	var outline: OutlineModifier? = null
 
 	modifier.foldIn(Unit) { _, element ->
 		when (element) {
 			is BackgroundModifier -> background = element
-			is SizeModifier -> size = element
 			is OutlineModifier -> outline = element
 		}
 	}
-	if (size == null) throw IllegalStateException("Spacer component needs to have a size modifier")
 
 	Layout(
 		measurePolicy = { _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
@@ -42,8 +39,8 @@ fun Spacer(modifier: Modifier = Modifier) {
 						GradientDirection.TOP_TO_BOTTOM -> guiGraphics.fillGradient(
 							x,
 							y,
-							size.constraints.minWidth,
-							size.constraints.minHeight,
+							node.width,
+							node.height,
 							background.startColor,
 							background.startColor,
 							background.endColor,
@@ -53,8 +50,8 @@ fun Spacer(modifier: Modifier = Modifier) {
 						GradientDirection.LEFT_TO_RIGHT -> guiGraphics.fillGradient(
 							x,
 							y,
-							size.constraints.minWidth,
-							size.constraints.minHeight,
+							node.width,
+							node.height,
 							background.startColor,
 							background.endColor,
 							background.endColor,
@@ -64,8 +61,8 @@ fun Spacer(modifier: Modifier = Modifier) {
 						GradientDirection.RIGHT_TO_LEFT -> guiGraphics.fillGradient(
 							x,
 							y,
-							size.constraints.minWidth,
-							size.constraints.minHeight,
+							node.width,
+							node.height,
 							background.endColor,
 							background.startColor,
 							background.startColor,
@@ -75,8 +72,8 @@ fun Spacer(modifier: Modifier = Modifier) {
 						GradientDirection.BOTTOM_TO_TOP -> guiGraphics.fillGradient(
 							x,
 							y,
-							size.constraints.minWidth,
-							size.constraints.minHeight,
+							node.width,
+							node.height,
 							background.endColor,
 							background.endColor,
 							background.startColor,
@@ -87,11 +84,11 @@ fun Spacer(modifier: Modifier = Modifier) {
 
 				if (outline != null) {
 					guiGraphics.drawRectOutline(
-						x, y, size.constraints.minWidth, size.constraints.minHeight, outline.color
+						x, y, node.width, node.height, outline.color
 					)
 				}
 			}
 		},
-		modifier = modifier,
+		modifier = modifier.fillMaxSize(),
 	)
 }

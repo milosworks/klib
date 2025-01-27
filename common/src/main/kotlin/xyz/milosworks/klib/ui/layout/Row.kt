@@ -23,7 +23,7 @@ fun Row(
 	Layout(
 		measurePolicy,
 		modifier = modifier,
-		content = content
+		content = content,
 	)
 }
 

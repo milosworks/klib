@@ -10,7 +10,6 @@ plugins {
 }
 
 architectury {
-	platformSetupLoomIde()
 	fabric()
 }
 
@@ -53,7 +52,7 @@ dependencies {
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
-	
+
 	bundleRuntimeLibrary(compose.runtime)
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)

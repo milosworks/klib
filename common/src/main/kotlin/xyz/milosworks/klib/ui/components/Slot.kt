@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.resources.ResourceLocation
 import xyz.milosworks.klib.KLib
 import xyz.milosworks.klib.ui.layout.*
 import xyz.milosworks.klib.ui.modifiers.Modifier
@@ -58,14 +59,14 @@ fun Slots(
 }
 
 @Composable
-fun Slot(modifier: Modifier = Modifier) {
+fun Slot(texture: ResourceLocation = KLib["textures/gui/slot.png"], modifier: Modifier = Modifier) {
 	val data = LocalSlotGroup.current
+
 	Layout(
 		measurePolicy = { _, constraints ->
 			MeasureResult(constraints.minWidth, constraints.minHeight) {}
 		},
 		renderer = object : Renderer {
-			private val SLOT = KLib["textures/gui/slot.png"]
 			override fun render(
 				node: UINode,
 				x: Int,
@@ -75,7 +76,7 @@ fun Slot(modifier: Modifier = Modifier) {
 				mouseY: Int,
 				partialTick: Float
 			) {
-				guiGraphics.blit(SLOT, x, y, 18, 18, 0f, 0f, 18, 18, 18, 18)
+				guiGraphics.blit(texture, x, y, 18, 18, 0f, 0f, 18, 18, 18, 18)
 			}
 		},
 		modifier = Modifier.sizeIn(minWidth = 18, minHeight = 18).onGloballyPositioned { pos ->

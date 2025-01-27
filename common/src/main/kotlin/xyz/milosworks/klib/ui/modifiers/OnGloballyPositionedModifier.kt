@@ -2,7 +2,6 @@ package xyz.milosworks.klib.ui.modifiers
 
 import xyz.milosworks.klib.ui.layout.IntCoordinates
 
-
 class OnGloballyPositionedModifier(
 	val merged: Boolean = false,
 	val onGloballyPositioned: (IntCoordinates) -> Unit

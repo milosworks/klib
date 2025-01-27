@@ -14,6 +14,7 @@ plugins {
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.kotlin.compose) apply false
 	alias(libs.plugins.kotlin.compose.plugin) apply false
+	alias(libs.plugins.archie) apply false
 
 //	alias(libs.plugins.modpublisher)
 }
@@ -71,6 +72,8 @@ subprojects {
 }
 
 allprojects {
+	if (project.layout.projectDirectory.asFile.name == "docs") return@allprojects
+
 	apply(plugin = "java")
 	apply(plugin = "idea")
 
@@ -116,6 +119,12 @@ allprojects {
 		}
 	}
 }
+
+//subprojects {
+//	if (!arrayOf("common", "docs").contains(project.layout.projectDirectory.asFile.name)) {
+//		apply(plugin = "net.kernelpanicsoft.archie.plugin")
+//	}
+//}
 
 //dependencies {
 //	dokka(projects.common)
