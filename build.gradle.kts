@@ -34,43 +34,6 @@ val String.localOrEnv: String?
 
 val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
-subprojects {
-	apply(plugin = "dev.architectury.loom")
-
-	configure<LoomGradleExtensionAPI> {
-		silentMojangMappingsLicense()
-	}
-
-	repositories {
-		mavenCentral()
-		mavenLocal()
-		google()
-
-		maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-		maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-		maven("https://maven.parchmentmc.org")
-		maven("https://maven.fabricmc.net/")
-		maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
-		maven("https://thedarkcolour.github.io/KotlinForForge/") {
-			name = "Kotlin for Forge"
-			content {
-				includeGroup("thedarkcolour")
-			}
-		}
-	}
-
-	@Suppress("UnstableApiUsage")
-	dependencies {
-		"minecraft"(rootProject.libs.minecraft)
-		"mappings"(project.the<LoomGradleExtensionAPI>().layered {
-			officialMojangMappings()
-			parchment(rootProject.libs.parchment)
-		})
-
-		compileOnly("org.jetbrains:annotations:24.1.0")
-	}
-}
-
 allprojects {
 	if (project.layout.projectDirectory.asFile.name == "docs") return@allprojects
 
@@ -120,17 +83,42 @@ allprojects {
 	}
 }
 
-//subprojects {
-//	if (!arrayOf("common", "docs").contains(project.layout.projectDirectory.asFile.name)) {
-//		apply(plugin = "net.kernelpanicsoft.archie.plugin")
-//	}
-//}
+subprojects {
+	apply(plugin = "dev.architectury.loom")
 
-//dependencies {
-//	dokka(projects.common)
-//	dokka(projects.fabric)
-//	dokka(projects.neoforge)
-//}
+	configure<LoomGradleExtensionAPI> {
+		silentMojangMappingsLicense()
+	}
+
+	repositories {
+		mavenCentral()
+		mavenLocal()
+		google()
+
+		maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+		maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+		maven("https://maven.parchmentmc.org")
+		maven("https://maven.fabricmc.net/")
+		maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
+		maven("https://thedarkcolour.github.io/KotlinForForge/") {
+			name = "Kotlin for Forge"
+			content {
+				includeGroup("thedarkcolour")
+			}
+		}
+	}
+
+	@Suppress("UnstableApiUsage")
+	dependencies {
+		"minecraft"(rootProject.libs.minecraft)
+		"mappings"(project.the<LoomGradleExtensionAPI>().layered {
+			officialMojangMappings()
+			parchment(rootProject.libs.parchment)
+		})
+
+		compileOnly("org.jetbrains:annotations:24.1.0")
+	}
+}
 
 idea {
 	module {

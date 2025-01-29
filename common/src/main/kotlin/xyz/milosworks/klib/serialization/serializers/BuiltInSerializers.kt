@@ -8,7 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
-import xyz.milosworks.klib.ui.argb
+import xyz.milosworks.klib.ui.util.argb
 import java.awt.Color
 
 /* ------------------ TypeAliases ------------------ */

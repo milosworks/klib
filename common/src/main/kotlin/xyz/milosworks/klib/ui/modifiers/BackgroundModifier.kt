@@ -1,7 +1,7 @@
 package xyz.milosworks.klib.ui.modifiers
 
 import androidx.compose.runtime.Stable
-import xyz.milosworks.klib.ui.KColor
+import xyz.milosworks.klib.ui.util.KColor
 
 enum class GradientDirection {
 	TOP_TO_BOTTOM,

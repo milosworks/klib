@@ -1,7 +1,7 @@
 package xyz.milosworks.klib.ui.modifiers
 
 import androidx.compose.runtime.Stable
-import xyz.milosworks.klib.ui.KColor
+import xyz.milosworks.klib.ui.util.KColor
 
 data class OutlineModifier(val color: Int) : Modifier.Element<OutlineModifier> {
 	override fun mergeWith(other: OutlineModifier): OutlineModifier =

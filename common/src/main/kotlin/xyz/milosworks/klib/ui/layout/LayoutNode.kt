@@ -84,11 +84,21 @@ internal class LayoutNode : Measurable, Placeable, UINode {
 	}
 
 	override fun render(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+		if (parent == null) guiGraphics.pose().pushPose()
+
 		val dx = this.x + x
 		val dy = this.y + y
 		renderer.render(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
-		for (child in children) child.render(dx, dy, guiGraphics, mouseX, mouseY, partialTick)
+		for (child in children) {
+			val matrix = guiGraphics.pose().last().pose()
+
+			// mx, my, mz
+			guiGraphics.pose().translate(matrix.m30(), matrix.m31(), matrix.m32() + 1)
+			child.render(dx, dy, guiGraphics, mouseX, mouseY, partialTick)
+		}
 		renderer.renderAfterChildren(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
+
+		if (parent == null) guiGraphics.pose().popPose()
 	}
 
 //	/**

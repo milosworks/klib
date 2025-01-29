@@ -5,6 +5,10 @@ plugins {
 	`dokka-convention`
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/${project.properties["mod_id"]}.accesswidener")
+}
+
 architectury {
 	common("fabric", "neoforge")
 }

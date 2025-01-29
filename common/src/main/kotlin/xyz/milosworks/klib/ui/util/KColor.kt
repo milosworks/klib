@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui
+package xyz.milosworks.klib.ui.util
 
 import kotlinx.serialization.Serializable
 import net.minecraft.ChatFormatting

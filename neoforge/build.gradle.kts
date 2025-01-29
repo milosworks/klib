@@ -1,4 +1,5 @@
 import net.kernelpanicsoft.archie.plugin.bundleRuntimeLibrary
+import org.jetbrains.compose.compose
 
 plugins {
 	alias(libs.plugins.shadow)
@@ -8,6 +9,14 @@ plugins {
 
 	`dokka-convention`
 }
+
+val String.prop: String?
+	get() = rootProject.properties[this] as String?
+
+val String.env: String?
+	get() = System.getenv(this)
+
+val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
 architectury {
 	neoForge()
@@ -58,9 +67,9 @@ dependencies {
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
 
 	bundleRuntimeLibrary(compose.runtime)
-//	bundleRuntimeLibrary(compose("org.jetbrains.compose.runtime:runtime-desktop"))
-//	bundleRuntimeLibrary(compose.runtimeSaveable)
-//	bundleRuntimeLibrary("androidx.collection:collection-jvm:1.4.0")
+	bundleRuntimeLibrary(compose("org.jetbrains.compose.runtime:runtime-desktop"))
+	bundleRuntimeLibrary(compose.runtimeSaveable)
+	bundleRuntimeLibrary("androidx.collection:collection-jvm:1.4.0")
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)
 
@@ -69,6 +78,7 @@ dependencies {
 }
 
 modResources {
+	properties.put("release_version", modVersion)
 	filesMatching.add("META-INF/neoforge.mods.toml")
 }
 

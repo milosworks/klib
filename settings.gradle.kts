@@ -11,7 +11,7 @@ pluginManagement {
 
 		maven("https://maven.firstdarkdev.xyz/releases")
 
-//		maven("https://maven.milosworks.xyz/releases")
+		maven("https://maven.milosworks.xyz/releases")
 		maven("https://repo.kernelpanicsoft.net/maven/releases")
 
 		mavenCentral()

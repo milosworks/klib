@@ -9,6 +9,14 @@ plugins {
 	`dokka-convention`
 }
 
+val String.prop: String?
+	get() = rootProject.properties[this] as String?
+
+val String.env: String?
+	get() = System.getenv(this)
+
+val modVersion = ("TAG".env ?: "mod_version".prop)!!
+
 architectury {
 	fabric()
 }
@@ -62,6 +70,7 @@ dependencies {
 }
 
 modResources {
+	properties.put("release_version", modVersion)
 	filesMatching.add("fabric.mod.json")
 }
 
