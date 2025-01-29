@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.player.Inventory
 import xyz.milosworks.klib.ui.ComposeContainerScreen
-import xyz.milosworks.klib.ui.components.DarkPanel
+import xyz.milosworks.klib.ui.components.Panel
 import xyz.milosworks.klib.ui.components.Slot
 import xyz.milosworks.klib.ui.components.Spacer
 import xyz.milosworks.klib.ui.components.Texture
@@ -21,8 +21,6 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 	ComposeContainerScreen<UIMenu>(menu, inventory, title) {
 
 	init {
-//		this.imageHeight = 114 + 10 * 18
-//		this.inventoryLabelY = this.imageHeight - 94
 		start {
 			content()
 		}
@@ -30,7 +28,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 
 	@Composable
 	fun content() {
-		DarkPanel {
+		Panel {
 			Column {
 				Slot()
 				Spacer(Modifier.size(50, 50).background(KColor.BLUE).outline(KColor.RED))

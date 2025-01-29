@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.Recomposer
 import androidx.compose.runtime.snapshots.Snapshot
+import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -23,7 +24,6 @@ import kotlin.coroutines.CoroutineContext
 abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 	menu: T, playerInventory: Inventory, title: Component
 ) : AbstractContainerScreen<T>(menu, playerInventory, title), CoroutineScope {
-
 	private var hasFrameWaiters = false
 	private val clock = BroadcastFrameClock { hasFrameWaiters = true }
 
@@ -45,6 +45,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 			}
 		}
 	}
+
+	private var debug = false
 
 	protected fun start(content: @Composable () -> Unit) {
 		UIScopeManager.scopes += composeScope
@@ -92,5 +94,14 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		snapshotHandle.dispose()
 		composition.dispose()
 		composeScope.cancel()
+	}
+
+	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+		// CTRL + SHIFT
+		// CTRL is detected as modifier 3
+		// SHIFT is the detected key
+		if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) debug = (debug == false)
+
+		return super.keyPressed(keyCode, scanCode, modifiers)
 	}
 }

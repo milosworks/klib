@@ -101,6 +101,8 @@ internal class LayoutNode : Measurable, Placeable, UINode {
 		if (parent == null) guiGraphics.pose().popPose()
 	}
 
+	fun isHovered(mouseX: Int, mouseY: Int): Boolean = mouseX in x..<x + width && mouseY in y..y + height
+
 //	/**
 //	 * @return Whether no elements were clickable or any element requested the bukkit click event to be cancelled.
 //	 */

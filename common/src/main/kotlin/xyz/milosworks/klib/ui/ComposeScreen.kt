@@ -19,7 +19,6 @@ import xyz.milosworks.klib.ui.nodes.UINodeApplier
 import kotlin.coroutines.CoroutineContext
 
 abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
-
 	private var hasFrameWaiters = false
 	private val clock = BroadcastFrameClock { hasFrameWaiters = true }
 
