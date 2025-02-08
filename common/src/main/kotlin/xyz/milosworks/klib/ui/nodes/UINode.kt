@@ -18,6 +18,6 @@ interface UINode {
 	fun render(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float)
 
 	companion object {
-		val Constructor: () -> UINode = ::LayoutNode
+		fun Constructor(nodeName: String): () -> UINode = { LayoutNode(nodeName) }
 	}
 }

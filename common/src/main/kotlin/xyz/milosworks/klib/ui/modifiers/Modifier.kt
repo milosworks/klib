@@ -16,6 +16,8 @@
 
 package xyz.milosworks.klib.ui.modifiers
 
+import net.minecraft.network.chat.Component
+
 /**
  * An ordered, immutable collection of [modifier elements][Modifier.Element] that decorate or add
  * behavior to Compose UI elements. For example, backgrounds, padding and click event listeners
@@ -65,6 +67,11 @@ interface Modifier {
 	 */
 	infix fun then(other: Modifier): Modifier =
 		if (other === Modifier) this else CombinedModifier(this, other)
+
+	/**
+	 * Returns the toString representation of this modifier as a [Component]
+	 */
+	fun toComponent(): Component = Component.literal(toString())
 
 	/**
 	 * A single element contained within a [Modifier] chain.
@@ -127,6 +134,14 @@ class CombinedModifier(
 		other is CombinedModifier && outer == other.outer && inner == other.inner
 
 	override fun hashCode(): Int = outer.hashCode() + 31 * inner.hashCode()
+
+	override fun toComponent(): Component = Component.literal("[").apply {
+		append(foldIn(Component.empty() as Component) { acc, element ->
+			if (acc == Component.empty()) element.toComponent()
+			else Component.empty().append(acc).append(Component.literal(", ")).append(element.toComponent())
+		})
+		append(Component.literal("]"))
+	}
 
 	override fun toString() = "[" + foldIn("") { acc, element ->
 		if (acc.isEmpty()) element.toString() else "$acc, $element"

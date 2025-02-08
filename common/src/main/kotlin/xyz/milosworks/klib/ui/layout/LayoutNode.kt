@@ -1,12 +1,23 @@
 package xyz.milosworks.klib.ui.layout
 
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.network.chat.Component
+import xyz.milosworks.klib.ui.extensions.drawRectOutline
 import xyz.milosworks.klib.ui.modifiers.Constraints
 import xyz.milosworks.klib.ui.modifiers.LayoutChangingModifier
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.OnSizeChangedModifier
 import xyz.milosworks.klib.ui.nodes.UINode
+import xyz.milosworks.klib.ui.util.KColor
 import kotlin.reflect.KClass
+
+object DebugColors {
+	val COMPONENT_OUTLINE = KColor.ofRgb(0x00FFFF).argb
+	val DEBUG_OUTLINE = KColor.BLACK.argb
+	const val DEBUG_FILL = 0xA7000000
+	const val DEBUG_TEXT = 0xFFFFFFFF
+}
 
 /**
  * TODO structure is really not decided on yet.
@@ -14,7 +25,9 @@ import kotlin.reflect.KClass
  *  You can configure stuff through [measurePolicy], [placer], and the [modifier], but things creates some problems
  *  when trying to make your own composable nodes that interact with this Layout node.
  */
-internal class LayoutNode : Measurable, Placeable, UINode {
+internal class LayoutNode(
+	private val nodeName: String = "LayoutNode",
+) : Measurable, Placeable, UINode {
 	override var measurePolicy: MeasurePolicy = ChildMeasurePolicy
 	override var renderer: Renderer = EmptyRenderer
 	val children = mutableListOf<LayoutNode>()
@@ -47,6 +60,22 @@ internal class LayoutNode : Measurable, Placeable, UINode {
 	override var height: Int = 0
 	override var x: Int = 0
 	override var y: Int = 0
+
+	private val absoluteCoords: IntCoordinates
+		get() {
+			var coordinates = IntCoordinates(this.x, this.y)
+			var parent = this.parent
+			while (parent != null) {
+				coordinates += IntCoordinates(parent.x, parent.y)
+				parent = parent.parent
+			}
+			return coordinates
+		}
+
+	val rootNode: LayoutNode get() = parent?.rootNode ?: this
+	var debug: Boolean = false
+		get() = parent?.debug ?: field
+		set(value) = parent?.let { parent!!.debug = value } ?: run { field = value }
 
 	private fun coercedConstraints(constraints: Constraints) = with(constraints) {
 		object : Placeable by this@LayoutNode {
@@ -98,10 +127,83 @@ internal class LayoutNode : Measurable, Placeable, UINode {
 		}
 		renderer.renderAfterChildren(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
 
-		if (parent == null) guiGraphics.pose().popPose()
+		if (parent == null) {
+			if (rootNode.debug) {
+				val matrix = guiGraphics.pose().last().pose()
+				guiGraphics.pose().translate(matrix.m30(), matrix.m31(), matrix.m32() + 1)
+				renderDebug(x, y, guiGraphics, mouseX, mouseY, partialTick)
+			}
+			guiGraphics.pose().popPose()
+		}
 	}
 
-	fun isHovered(mouseX: Int, mouseY: Int): Boolean = mouseX in x..<x + width && mouseY in y..y + height
+	private fun renderDebug(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+		val dx = this.x + x
+		val dy = this.y + y
+
+		val hoveredChildren = children.filter { it.isHovered(mouseX, mouseY) }
+		if (hoveredChildren.isNotEmpty())
+			return hoveredChildren.forEach { it.renderDebug(dx, dy, guiGraphics, mouseX, mouseY, partialTick) }
+
+		if (!isHovered(mouseX, mouseY)) return
+
+		guiGraphics.drawRectOutline(dx, dy, width, height, DebugColors.COMPONENT_OUTLINE)
+
+		val debugStartX = dx + 1
+		val debugStartY = dy + height + 1
+		val font = Minecraft.getInstance().font
+		val lineHeight = font.lineHeight
+		val lineSpacing = 2
+		val columnSpacing = 6
+
+		val debugLines: List<List<Component>> = buildList {
+			add(listOf(Component.literal(nodeName)))
+			add(
+				listOf(
+					Component.literal("X:").apply {
+						append(Component.literal("$dx").withColor(0x00FFFF))
+						append(", Y:")
+						append(Component.literal("$dy").withColor(0x32CD32))
+					},
+					Component.literal("W:").apply {
+						append(Component.literal("$width").withColor(0xFFA500))
+						append(", H:")
+						append(Component.literal("$height").withColor(0x87CEEB))
+					}
+				)
+			)
+
+			add(listOf(modifier.toComponent()))
+		}
+
+		val lineWidths = debugLines.map { line -> line.sumOf { font.width(it) } + (line.size - 1) * columnSpacing }
+		val maxLineWidth = lineWidths.maxOrNull()?.plus(4) ?: 0
+		val debugHeight = (debugLines.size * (lineHeight + lineSpacing)) - lineSpacing + 2
+
+		guiGraphics.drawRectOutline(debugStartX, debugStartY, maxLineWidth, debugHeight, DebugColors.DEBUG_OUTLINE)
+		guiGraphics.fill(
+			debugStartX,
+			debugStartY,
+			debugStartX + maxLineWidth,
+			debugStartY + debugHeight,
+			DebugColors.DEBUG_FILL.toInt()
+		)
+
+		debugLines.forEachIndexed { rowIndex, line ->
+			var currentX = debugStartX + 2
+			val textY = debugStartY + rowIndex * (lineHeight + lineSpacing) + 2
+
+			line.forEachIndexed { colIndex, text ->
+				guiGraphics.drawString(font, text, currentX, textY, DebugColors.DEBUG_TEXT.toInt())
+				if (colIndex < line.size - 1) {
+					currentX += font.width(text) + columnSpacing
+				}
+			}
+		}
+	}
+
+	private fun isHovered(mouseX: Int, mouseY: Int) =
+		mouseX in absoluteCoords.x until (absoluteCoords.x + width) && mouseY in absoluteCoords.y until (absoluteCoords.y + height)
 
 //	/**
 //	 * @return Whether no elements were clickable or any element requested the bukkit click event to be cancelled.
@@ -149,7 +251,7 @@ internal class LayoutNode : Measurable, Placeable, UINode {
 //		}
 //	}
 
-	override fun toString() = children.joinToString(prefix = "LayoutNode(", postfix = ")")
+	override fun toString() = children.joinToString(prefix = "$nodeName(", postfix = ")")
 
 	internal companion object {
 		val ChildMeasurePolicy = MeasurePolicy { measurables, constraints ->

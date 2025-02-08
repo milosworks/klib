@@ -46,8 +46,6 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		}
 	}
 
-	private var debug = false
-
 	protected fun start(content: @Composable () -> Unit) {
 		UIScopeManager.scopes += composeScope
 		launch {
@@ -96,11 +94,15 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		composeScope.cancel()
 	}
 
+	override fun mouseMoved(mouseX: Double, mouseY: Double) {
+		super.mouseMoved(mouseX, mouseY)
+	}
+
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
 		// CTRL + SHIFT
 		// CTRL is detected as modifier 3
 		// SHIFT is the detected key
-		if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) debug = (debug == false)
+		if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
 
 		return super.keyPressed(keyCode, scanCode, modifiers)
 	}

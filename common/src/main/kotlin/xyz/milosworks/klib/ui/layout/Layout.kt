@@ -14,7 +14,7 @@ inline fun Layout(
 	content: @Composable () -> Unit = {}
 ) {
 	ComposeNode<UINode, UINodeApplier>(
-		factory = UINode.Constructor,
+		factory = UINode.Constructor(Thread.currentThread().stackTrace[1].methodName),
 		update = {
 			set(measurePolicy) { this.measurePolicy = it }
 			set(renderer) { this.renderer = it }

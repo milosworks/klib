@@ -15,7 +15,6 @@ data class BackgroundModifier(
 	val endColor: Int,
 	val gradientDirection: GradientDirection = GradientDirection.TOP_TO_BOTTOM
 ) : Modifier.Element<BackgroundModifier> {
-
 	override fun mergeWith(other: BackgroundModifier): BackgroundModifier =
 		throw UnsupportedOperationException("not implemented")
 }
