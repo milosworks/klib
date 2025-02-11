@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.resources.ResourceLocation
 import xyz.milosworks.klib.KLib
 import xyz.milosworks.klib.ui.layout.*
 import xyz.milosworks.klib.ui.modifiers.Modifier
+import xyz.milosworks.klib.ui.modifiers.TextureModifier
 import xyz.milosworks.klib.ui.modifiers.onGloballyPositioned
 import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
@@ -59,8 +59,10 @@ fun Slots(
 }
 
 @Composable
-fun Slot(texture: ResourceLocation = KLib["textures/gui/slot.png"], modifier: Modifier = Modifier) {
+fun Slot(modifier: Modifier = Modifier) {
 	val data = LocalSlotGroup.current
+	val texture = modifier.foldIn<TextureModifier?>(null) { acc, el -> acc ?: el as? TextureModifier? }?.texture
+		?: KLib["textures/gui/slot.png"]
 
 	Layout(
 		measurePolicy = { _, constraints ->

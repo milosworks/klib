@@ -18,6 +18,7 @@ val String.env: String?
 val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
 architectury {
+	platformSetupLoomIde()
 	neoForge()
 }
 
@@ -32,19 +33,22 @@ configurations {
 }
 
 loom {
+	accessWidenerPath.set(project(":common").loom.accessWidenerPath)
+
 	mods {
 		maybeCreate("main").apply {
 			sourceSet(project.sourceSets.main.get())
-			sourceSet(project(":common").sourceSets.main.get())
+//			sourceSet(project(":common").sourceSets.main.get())
 		}
 		create("test") {
 			sourceSet(project.sourceSets.test.get())
-			sourceSet(project(":common").sourceSets.test.get())
+//			sourceSet(project(":common").sourceSets.test.get())
 		}
 	}
 
 	runs {
 		getByName("client") {
+			source(sourceSets.main.get())
 			source(sourceSets.test.get())
 		}
 	}
@@ -52,7 +56,6 @@ loom {
 
 dependencies {
 	compileOnly(libs.kotlin.stdlib)
-	testCompileOnly(libs.kotlin.stdlib)
 
 	neoForge(libs.neoforge)
 	modApi(libs.architectury.neoforge)
@@ -60,10 +63,10 @@ dependencies {
 		exclude(group = "net.neoforged.fancymodloader", module = "loader")
 	}
 
+	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.nbt)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
 	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
-	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
 
 	bundleRuntimeLibrary(compose.runtime)
 //	bundleRuntimeLibrary(compose("org.jetbrains.compose.runtime:runtime-desktop"))
@@ -117,9 +120,9 @@ tasks {
 	sourcesJar {
 		project(":common").tasks.sourcesJar.also {
 			dependsOn(it)
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from(it.get().archiveFile.map { zipTree(it) })
 		}
-		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
 }
 

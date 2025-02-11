@@ -5,7 +5,23 @@ import androidx.compose.runtime.remember
 import xyz.milosworks.klib.ui.modifiers.Modifier
 
 /**
- * A layout component that places contents in a row left-to-right.
+ * A layout that arranges its children in a horizontal row from left to right.
+ *
+ * The `Row` composable places its children one beside the other, based on the provided
+ * [horizontalArrangement] and [verticalAlignment]. It allows for spacing between
+ * elements and alignment control for the content within each column.
+ *
+ * Example usage:
+ * ```
+ * Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+ *     Text("Centered content")
+ * }
+ * ```
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param horizontalArrangement Defines how the children are arranged horizontally. Default is [Arrangement.Start].
+ * @param verticalAlignment Defines how the children are aligned vertically. Default is [Alignment.Top].
+ * @param content The composable content to be placed inside the row.
  */
 @Composable
 fun Row(
@@ -22,6 +38,7 @@ fun Row(
 	}
 	Layout(
 		measurePolicy,
+		renderer = DefaultRenderer(),
 		modifier = modifier,
 		content = content,
 	)

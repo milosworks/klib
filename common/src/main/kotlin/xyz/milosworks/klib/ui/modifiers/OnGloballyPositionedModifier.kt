@@ -13,6 +13,7 @@ class OnGloballyPositionedModifier(
 			other.onGloballyPositioned(position)
 		}
 
+	override fun toString(): String = "OnGloballyPositionedModifier(merged=$merged)"
 }
 
 fun Modifier.onGloballyPositioned(onGloballyPositioned: (IntCoordinates) -> Unit) =

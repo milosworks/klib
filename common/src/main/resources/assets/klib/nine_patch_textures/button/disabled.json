@@ -1,0 +1,15 @@
+{
+	"texture": "klib:textures/gui/buttons.png",
+	"texture_width": 64,
+	"texture_height": 192,
+	"v": 128,
+	"repeat": true,
+	"corners_size": {
+		"width": 3,
+		"height": 3
+	},
+	"center_size": {
+		"width": 58,
+		"height": 58
+	}
+}

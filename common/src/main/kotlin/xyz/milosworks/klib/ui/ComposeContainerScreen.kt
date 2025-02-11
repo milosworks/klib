@@ -15,9 +15,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import xyz.milosworks.klib.ui.layout.Alignment
 import xyz.milosworks.klib.ui.layout.Box
 import xyz.milosworks.klib.ui.layout.LayoutNode
-import xyz.milosworks.klib.ui.modifiers.Constraints
-import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.modifiers.fillMaxSize
+import xyz.milosworks.klib.ui.modifiers.*
 import xyz.milosworks.klib.ui.nodes.UINodeApplier
 import kotlin.coroutines.CoroutineContext
 
@@ -94,8 +92,36 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		composeScope.cancel()
 	}
 
+	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+		fun findClick(node: LayoutNode): List<Pair<LayoutNode, OnClickModifier>> {
+			return node.children
+				.flatMap { findClick(it) } +
+					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
+						?.modifier?.get<OnClickModifier>()
+						?.let { listOf(node to it) }
+						.orEmpty()
+		}
+
+		findClick(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mod) -> mod.onClick(child) }
+
+		return super.mouseClicked(mouseX, mouseY, button)
+	}
+
 	override fun mouseMoved(mouseX: Double, mouseY: Double) {
-		super.mouseMoved(mouseX, mouseY)
+		fun findHovered(node: LayoutNode): List<Pair<LayoutNode, OnHoverModifier>> {
+			return node.children
+				.flatMap { findHovered(it) } +
+					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
+						?.modifier?.get<OnHoverModifier>()
+						?.let { listOf(node to it) }
+						.orEmpty()
+		}
+
+		findHovered(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mod) -> mod.onHover(child) }
 	}
 
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
@@ -103,7 +129,14 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		// CTRL is detected as modifier 3
 		// SHIFT is the detected key
 		if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
+		if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
 
 		return super.keyPressed(keyCode, scanCode, modifiers)
+	}
+
+	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+		if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = false
+
+		return super.keyReleased(keyCode, scanCode, modifiers)
 	}
 }

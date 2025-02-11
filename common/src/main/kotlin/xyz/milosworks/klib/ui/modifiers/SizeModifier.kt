@@ -20,6 +20,10 @@ data class SizeModifier(
 	override fun modifyInnerConstraints(constraints: Constraints): Constraints {
 		return SizeModifier(constraints).mergeWith(this).constraints
 	}
+
+	override fun toString(): String =
+		if (constraints.minWidth == constraints.maxWidth && constraints.minHeight == constraints.maxHeight) "SizeModifier(width=${constraints.minWidth}, height=${constraints.minHeight})"
+		else "SizeModifier(minWidth=${constraints.minWidth}, maxWidth=${constraints.maxWidth}, minHeight=${constraints.minHeight}, maxHeight=${constraints.maxHeight}"
 }
 
 data class HorizontalFillModifier(

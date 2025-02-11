@@ -92,7 +92,7 @@ fun GuiGraphics.drawRectOutline(type: RenderType, x: Int, y: Int, width: Int, he
 	fill(type, x + width - 1, y + 1, x + width, y + height - 1, color)
 }
 
-// REMEMBER: blit() requires a rendertype on 1.21.4
+// REMEMBER: blit() requires a renderType on 1.21.4
 /**
  * Draws a [NinePatchTexture] on the GUI.
  * All NinePatchTextures need to be under "assets/mod_id/nine_patch_textures".

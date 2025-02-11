@@ -7,9 +7,24 @@ import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.MeasureResult
 import xyz.milosworks.klib.ui.layout.Renderer
 import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.modifiers.SizeModifier
 import xyz.milosworks.klib.ui.nodes.UINode
 
+/**
+ * Renders a texture from a specified location with the given UV offsets and texture size.
+ *
+ * Example usage:
+ * ```
+ * Texture(loc = myTextureLocation, uOffset = 0f, vOffset = 0f, u = 16, v = 16, textureWidth = 64, textureHeight = 64)
+ * ```
+ *
+ * @param loc The resource location of the texture to be rendered.
+ * @param uOffset The horizontal offset (U coordinate) to start the texture from.
+ * @param vOffset The vertical offset (V coordinate) to start the texture from.
+ * @param u The horizontal size (U dimension) of the texture to be displayed.
+ * @param v The vertical size (V dimension) of the texture to be displayed.
+ * @param textureWidth The width of the texture to be used.
+ * @param textureHeight The height of the texture to be used.
+ */
 @Composable
 fun Texture(
 	loc: ResourceLocation,
@@ -21,16 +36,6 @@ fun Texture(
 	textureHeight: Int,
 	modifier: Modifier = Modifier
 ) {
-	var size: SizeModifier? = null
-
-	modifier.foldIn(Unit) { _, element ->
-		when (element) {
-			is SizeModifier -> size = element
-		}
-	}
-
-	if (size == null) throw IllegalStateException("You need to specify a SizeModifier first.")
-
 	Layout(
 		measurePolicy = { _, constraints ->
 			MeasureResult(constraints.minWidth, constraints.minHeight) {}
@@ -49,8 +54,8 @@ fun Texture(
 					loc,
 					x,
 					y,
-					size.constraints.minWidth,
-					size.constraints.minHeight,
+					node.width,
+					node.height,
 					uOffset,
 					vOffset,
 					u,

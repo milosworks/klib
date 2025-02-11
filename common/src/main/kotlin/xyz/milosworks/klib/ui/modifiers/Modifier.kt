@@ -110,6 +110,15 @@ interface Modifier {
 	}
 }
 
+inline fun <reified T : Modifier> Modifier.contains(): Boolean =
+	foldIn(false) { acc, modifier -> acc || modifier is T }
+
+inline fun <reified T : Modifier> Modifier.firstOrNull(): T? =
+	foldIn<T?>(null) { acc, modifier -> acc ?: modifier as? T }
+
+inline fun <reified T : Modifier.Element<T>> Modifier.get(): T? =
+	foldIn<T?>(null) { acc, element -> if (element is T) acc?.mergeWith(element) ?: element else acc }
+
 /**
  * A node in a [Modifier] chain. A CombinedModifier always contains at least two elements;
  * a Modifier [outer] that wraps around the Modifier [inner].

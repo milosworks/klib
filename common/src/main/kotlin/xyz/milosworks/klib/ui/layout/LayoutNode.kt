@@ -4,20 +4,15 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import xyz.milosworks.klib.ui.extensions.drawRectOutline
-import xyz.milosworks.klib.ui.modifiers.Constraints
-import xyz.milosworks.klib.ui.modifiers.LayoutChangingModifier
-import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.modifiers.OnSizeChangedModifier
+import xyz.milosworks.klib.ui.extensions.fillGradient
+import xyz.milosworks.klib.ui.modifiers.*
 import xyz.milosworks.klib.ui.nodes.UINode
-import xyz.milosworks.klib.ui.util.KColor
 import kotlin.reflect.KClass
 
-object DebugColors {
-	val COMPONENT_OUTLINE = KColor.ofRgb(0x00FFFF).argb
-	val DEBUG_OUTLINE = KColor.BLACK.argb
-	const val DEBUG_FILL = 0xA7000000
-	const val DEBUG_TEXT = 0xFFFFFFFF
-}
+const val COMPONENT_OUTLINE = 0xFF00FFFF.toInt()
+const val DEBUG_OUTLINE = 0xFF000000.toInt()
+const val DEBUG_FILL = 0xA7000000.toInt()
+const val DEBUG_TEXT = 0xFFFFFFFF.toInt()
 
 /**
  * TODO structure is really not decided on yet.
@@ -76,6 +71,9 @@ internal class LayoutNode(
 	var debug: Boolean = false
 		get() = parent?.debug ?: field
 		set(value) = parent?.let { parent!!.debug = value } ?: run { field = value }
+	var extraDebug: Boolean = false
+		get() = parent?.extraDebug ?: field
+		set(value) = parent?.let { parent!!.extraDebug = value } ?: run { field = value }
 
 	private fun coercedConstraints(constraints: Constraints) = with(constraints) {
 		object : Placeable by this@LayoutNode {
@@ -141,17 +139,18 @@ internal class LayoutNode(
 		val dx = this.x + x
 		val dy = this.y + y
 
-		val hoveredChildren = children.filter { it.isHovered(mouseX, mouseY) }
+		val hoveredChildren = children.filter { it.isBounded(mouseX, mouseY) }
 		if (hoveredChildren.isNotEmpty())
 			return hoveredChildren.forEach { it.renderDebug(dx, dy, guiGraphics, mouseX, mouseY, partialTick) }
 
-		if (!isHovered(mouseX, mouseY)) return
+		if (!isBounded(mouseX, mouseY)) return
 
-		guiGraphics.drawRectOutline(dx, dy, width, height, DebugColors.COMPONENT_OUTLINE)
+		guiGraphics.drawRectOutline(dx, dy, width, height, COMPONENT_OUTLINE)
 
 		val debugStartX = dx + 1
-		val debugStartY = dy + height + 1
-		val font = Minecraft.getInstance().font
+		var debugStartY = dy + height + 1
+		val minecraft = Minecraft.getInstance()
+		val font = minecraft.font
 		val lineHeight = font.lineHeight
 		val lineSpacing = 2
 		val columnSpacing = 6
@@ -173,20 +172,37 @@ internal class LayoutNode(
 				)
 			)
 
-			add(listOf(modifier.toComponent()))
+			if (extraDebug) {
+				val modList = mutableListOf<Component>()
+
+				modifier.all { mod ->
+					if (mod is DebugModifier) modList.addAll(0, mod.toComponents())
+					else modList.add(mod.toComponent())
+
+					true
+				}
+
+				if (modList.isNotEmpty()) {
+					add(listOf(Component.literal("Modifiers:")))
+
+					modList.forEach { add(listOf(it)) }
+				}
+			}
 		}
 
 		val lineWidths = debugLines.map { line -> line.sumOf { font.width(it) } + (line.size - 1) * columnSpacing }
 		val maxLineWidth = lineWidths.maxOrNull()?.plus(4) ?: 0
 		val debugHeight = (debugLines.size * (lineHeight + lineSpacing)) - lineSpacing + 2
 
-		guiGraphics.drawRectOutline(debugStartX, debugStartY, maxLineWidth, debugHeight, DebugColors.DEBUG_OUTLINE)
+		if (debugStartY + debugHeight > guiGraphics.guiHeight()) debugStartY -= height
+
+		guiGraphics.drawRectOutline(debugStartX, debugStartY, maxLineWidth, debugHeight, DEBUG_OUTLINE)
 		guiGraphics.fill(
 			debugStartX,
 			debugStartY,
 			debugStartX + maxLineWidth,
 			debugStartY + debugHeight,
-			DebugColors.DEBUG_FILL.toInt()
+			DEBUG_FILL
 		)
 
 		debugLines.forEachIndexed { rowIndex, line ->
@@ -194,7 +210,7 @@ internal class LayoutNode(
 			val textY = debugStartY + rowIndex * (lineHeight + lineSpacing) + 2
 
 			line.forEachIndexed { colIndex, text ->
-				guiGraphics.drawString(font, text, currentX, textY, DebugColors.DEBUG_TEXT.toInt())
+				guiGraphics.drawString(font, text, currentX, textY, DEBUG_TEXT)
 				if (colIndex < line.size - 1) {
 					currentX += font.width(text) + columnSpacing
 				}
@@ -202,7 +218,7 @@ internal class LayoutNode(
 		}
 	}
 
-	private fun isHovered(mouseX: Int, mouseY: Int) =
+	internal fun isBounded(mouseX: Int, mouseY: Int) =
 		mouseX in absoluteCoords.x until (absoluteCoords.x + width) && mouseY in absoluteCoords.y until (absoluteCoords.y + height)
 
 //	/**
@@ -265,3 +281,80 @@ internal class LayoutNode(
 }
 
 val EmptyRenderer = object : Renderer {}
+
+open class DefaultRenderer : Renderer {
+	lateinit var node: UINode
+
+	val background: BackgroundModifier? by lazy {
+		node.modifier.foldIn(null) { acc, el -> acc ?: el as? BackgroundModifier }
+	}
+	val outline: OutlineModifier? by lazy {
+		node.modifier.foldIn(null) { acc, el -> acc ?: el as? OutlineModifier }
+	}
+
+	override fun render(
+		uiNode: UINode,
+		x: Int,
+		y: Int,
+		guiGraphics: GuiGraphics,
+		mouseX: Int,
+		mouseY: Int,
+		partialTick: Float
+	) {
+		node = uiNode
+
+		background?.let {
+			when (it.gradientDirection) {
+				GradientDirection.TOP_TO_BOTTOM -> guiGraphics.fillGradient(
+					x,
+					y,
+					node.width,
+					node.height,
+					it.startColor,
+					it.startColor,
+					it.endColor,
+					it.endColor,
+				)
+
+				GradientDirection.LEFT_TO_RIGHT -> guiGraphics.fillGradient(
+					x,
+					y,
+					node.width,
+					node.height,
+					it.startColor,
+					it.endColor,
+					it.endColor,
+					it.startColor
+				)
+
+				GradientDirection.RIGHT_TO_LEFT -> guiGraphics.fillGradient(
+					x,
+					y,
+					node.width,
+					node.height,
+					it.endColor,
+					it.startColor,
+					it.startColor,
+					it.endColor
+				)
+
+				GradientDirection.BOTTOM_TO_TOP -> guiGraphics.fillGradient(
+					x,
+					y,
+					node.width,
+					node.height,
+					it.endColor,
+					it.endColor,
+					it.startColor,
+					it.startColor
+				)
+			}
+		}
+
+		outline?.let {
+			guiGraphics.drawRectOutline(
+				x, y, node.width, node.height, it.color
+			)
+		}
+	}
+}

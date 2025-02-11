@@ -37,10 +37,6 @@ class Constraints(
 		minHeight.coerceAtMost(maxHeight),
 		maxHeight.coerceAtLeast(minHeight)
 	)
-
-	override fun toString(): String =
-		if (minWidth == maxWidth && minHeight == maxHeight) "Constraints(width=$maxWidth, height=$maxHeight)"
-		else "Constraints(minWidth=$minWidth, maxWidth=$maxWidth, minHeight=$minHeight, maxHeight=$maxHeight)"
 }
 
 // Android
