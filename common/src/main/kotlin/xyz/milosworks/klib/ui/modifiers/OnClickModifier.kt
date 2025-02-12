@@ -13,6 +13,7 @@ import xyz.milosworks.klib.ui.nodes.UINode
  * @param onClick A function that is triggered when the composable is clicked. It takes a [UINode] as a parameter
  * and returns a Boolean value indicating whether the click was handled.
  */
+@Deprecated("deprecated")
 data class OnClickModifier(var onClick: (UINode) -> Boolean) : Modifier.Element<OnClickModifier> {
 	override fun mergeWith(other: OnClickModifier): OnClickModifier =
 		OnClickModifier { node -> (onClick(node) || other.onClick(node)) }
@@ -28,4 +29,5 @@ data class OnClickModifier(var onClick: (UINode) -> Boolean) : Modifier.Element<
  * and returns a Boolean indicating whether the click was handled.
  */
 @Stable
+@Deprecated("deprecated")
 fun Modifier.onClick(onClick: (UINode) -> Boolean): Modifier = this then OnClickModifier(onClick)

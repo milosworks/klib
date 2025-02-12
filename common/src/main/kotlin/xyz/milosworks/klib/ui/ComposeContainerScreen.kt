@@ -92,37 +92,163 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		composeScope.cancel()
 	}
 
-	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		fun findClick(node: LayoutNode): List<Pair<LayoutNode, OnClickModifier>> {
-			return node.children
-				.flatMap { findClick(it) } +
-					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
-						?.modifier?.get<OnClickModifier>()
-						?.let { listOf(node to it) }
-						.orEmpty()
+	private fun processEvent(
+		node: LayoutNode,
+		mouseX: Int,
+		mouseY: Int,
+		eventType: PointerEventType,
+		condition: (LayoutNode) -> Boolean = { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
+	): Boolean {
+		var handled = false
+
+		for (child in node.children) {
+			handled = processEvent(child, mouseX, mouseY, eventType, condition) || handled
 		}
 
-		findClick(rootNode)
+		if (condition(node)) {
+			node.modifier.foldIn(Unit) { acc, el ->
+				if (handled == true) return@foldIn
+
+				if (el is OnPointerEventModifier && el.eventType == eventType) handled = el.onEvent(node)
+			}
+		}
+
+		return handled
+	}
+
+	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }?.let {
+				buildList {
+					node.modifier.foldIn(Unit) { _, element ->
+						if (element is OnPointerEventModifier && element.eventType == PointerEventType.PRESS)
+							add(element)
+					}
+				}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+			}.orEmpty()
+
+		find(rootNode)
 			.takeIf { it.isNotEmpty() }
-			?.any { (child, mod) -> mod.onClick(child) }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
 
 		return super.mouseClicked(mouseX, mouseY, button)
 	}
 
-	override fun mouseMoved(mouseX: Double, mouseY: Double) {
-		fun findHovered(node: LayoutNode): List<Pair<LayoutNode, OnHoverModifier>> {
-			return node.children
-				.flatMap { findHovered(it) } +
-					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
-						?.modifier?.get<OnHoverModifier>()
-						?.let { listOf(node to it) }
-						.orEmpty()
-		}
+	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }?.let {
+				buildList {
+					node.modifier.foldIn(Unit) { _, element ->
+						if (element is OnPointerEventModifier && element.eventType == PointerEventType.RELEASE)
+							add(element)
+					}
+				}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+			}.orEmpty()
 
-		findHovered(rootNode)
+		find(rootNode)
 			.takeIf { it.isNotEmpty() }
-			?.any { (child, mod) -> mod.onHover(child) }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+
+		return super.mouseReleased(mouseX, mouseY, button)
 	}
+
+	var lastMouseX = 0.0
+	var lastMouseY = 0.0
+
+	override fun mouseMoved(mouseX: Double, mouseY: Double) {
+		fun findMoved(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { findMoved(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }
+				?.let {
+					buildList {
+						node.modifier.foldIn(Unit) { _, element ->
+							if (element is OnPointerEventModifier && element.eventType == PointerEventType.MOVE)
+								add(element)
+						}
+					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+				}.orEmpty()
+
+		findMoved(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+
+		fun findEnter(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { findEnter(it) } + node.takeIf {
+				node.isBounded(
+					mouseX.toInt(),
+					mouseY.toInt()
+				) && !node.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
+			}
+				?.let {
+					buildList {
+						node.modifier.foldIn(Unit) { _, element ->
+							if (element is OnPointerEventModifier && element.eventType == PointerEventType.ENTER)
+								add(element)
+						}
+					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+				}.orEmpty()
+
+		findEnter(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+
+		fun findExit(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { findExit(it) } + node.takeIf {
+				node.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) &&
+						!node.isBounded(
+							mouseX.toInt(),
+							mouseY.toInt()
+						)
+			}
+				?.let {
+					buildList {
+						node.modifier.foldIn(Unit) { _, element ->
+							if (element is OnPointerEventModifier && element.eventType == PointerEventType.EXIT)
+								add(element)
+						}
+					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+				}.orEmpty()
+
+		findExit(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+
+		lastMouseX = mouseX
+		lastMouseY = mouseY
+	}
+
+	override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
+		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
+			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }
+				?.let {
+					buildList {
+						node.modifier.foldIn(Unit) { _, element ->
+							if (element is OnPointerEventModifier && element.eventType == PointerEventType.SCROLL)
+								add(element)
+						}
+					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
+				}.orEmpty()
+
+		find(rootNode)
+			.takeIf { it.isNotEmpty() }
+			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
+	}
+
+//	override fun mouseMoved(mouseX: Double, mouseY: Double) {
+//		fun findHovered(node: LayoutNode): List<Pair<LayoutNode, OnHoverModifier>> {
+//			return node.children
+//				.flatMap { findHovered(it) } +
+//					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
+//						?.modifier?.get<OnHoverModifier>()
+//						?.let { listOf(node to it) }
+//						.orEmpty()
+//		}
+//
+//		findHovered(rootNode)
+//			.takeIf { it.isNotEmpty() }
+//			?.any { (child, mod) -> mod.onHover(child) }
+//	}
 
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
 		// CTRL + SHIFT

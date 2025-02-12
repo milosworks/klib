@@ -23,17 +23,28 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 	@Composable
 	fun content() {
 		Surface {
-			Column(modifier = Modifier.onHover { true.also { println("hovered column") } }) {
+			Column(
+				modifier = Modifier
+//				.onHover { true.also { println("hovered column") } }
+			) {
 				Slot()
 				Text(
 					Component.literal("Hello World!"),
 					2f,
-					modifier = Modifier.onHover { true.also { println("hovered text") } }
+					modifier = Modifier
+						.onPointerEvent(PointerEventType.ENTER) { println("enter text"); true }
+						.onPointerEvent(PointerEventType.EXIT) { println("exit text"); true }
+//						.onHover { true.also { println("hovered text") } }
 				)
 				Spacer(
-					Modifier.size(50, 50).onClick { true.also { println("first click spacer") } }
+					Modifier.size(50, 50)
 						.background(KColor.BLUE).outline(KColor.RED)
-						.onClick { true.also { println("clicked spacer") } })
+						.combinedClickable(
+							onLongClick = { println("onLongClick spacer"); false },
+							onDoubleClick = { println("onDoubleClick spacer"); false },
+							onClick = { println("onClick spacer"); false }
+						)
+				)
 				Texture(
 					ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
 					0f,
@@ -42,7 +53,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 					64,
 					64,
 					64,
-					Modifier.size(100)
+					Modifier.size(100).onPointerEvent(PointerEventType.MOVE) { println("moved texture"); true }
 				)
 			}
 		}

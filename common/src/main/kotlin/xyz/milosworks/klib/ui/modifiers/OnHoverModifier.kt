@@ -13,6 +13,7 @@ import xyz.milosworks.klib.ui.nodes.UINode
  * @param onHover A function that is triggered when the composable is hovered over. It takes a [UINode] as a
  * parameter and returns a Boolean value indicating whether the hover was handled.
  */
+@Deprecated("deprecated")
 data class OnHoverModifier(var onHover: (UINode) -> Boolean) : Modifier.Element<OnHoverModifier> {
 	override fun mergeWith(other: OnHoverModifier): OnHoverModifier =
 		OnHoverModifier { node -> (onHover(node) || other.onHover(node)) }
@@ -28,4 +29,5 @@ data class OnHoverModifier(var onHover: (UINode) -> Boolean) : Modifier.Element<
  * parameter and returns a Boolean indicating whether the hover event was handled.
  */
 @Stable
+@Deprecated("deprecated")
 fun Modifier.onHover(onHover: (UINode) -> Boolean): Modifier = this then OnHoverModifier(onHover)

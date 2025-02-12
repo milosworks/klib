@@ -119,6 +119,11 @@ inline fun <reified T : Modifier> Modifier.firstOrNull(): T? =
 inline fun <reified T : Modifier.Element<T>> Modifier.get(): T? =
 	foldIn<T?>(null) { acc, element -> if (element is T) acc?.mergeWith(element) ?: element else acc }
 
+inline fun <reified T : Modifier.Element<T>> Modifier.getAll(): List<T> = buildList<T> {
+	foldIn(Unit) { acc, element -> if (element is T) add(element) }
+}
+
+
 /**
  * A node in a [Modifier] chain. A CombinedModifier always contains at least two elements;
  * a Modifier [outer] that wraps around the Modifier [inner].
