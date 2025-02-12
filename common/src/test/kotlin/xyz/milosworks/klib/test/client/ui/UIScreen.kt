@@ -24,8 +24,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 	fun content() {
 		Surface {
 			Column(
-				modifier = Modifier
-//				.onHover { true.also { println("hovered column") } }
+				modifier = Modifier.onPointerEvent(PointerEventType.SCROLL) { println("scroll column"); true }
 			) {
 				Slot()
 				Text(

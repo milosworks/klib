@@ -44,6 +44,9 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		}
 	}
 
+	private var lastMouseX = 0.0
+	private var lastMouseY = 0.0
+
 	protected fun start(content: @Composable () -> Unit) {
 		UIScopeManager.scopes += composeScope
 		launch {
@@ -117,138 +120,43 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 	}
 
 	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }?.let {
-				buildList {
-					node.modifier.foldIn(Unit) { _, element ->
-						if (element is OnPointerEventModifier && element.eventType == PointerEventType.PRESS)
-							add(element)
-					}
-				}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-			}.orEmpty()
-
-		find(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.PRESS)
 
 		return super.mouseClicked(mouseX, mouseY, button)
 	}
 
 	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }?.let {
-				buildList {
-					node.modifier.foldIn(Unit) { _, element ->
-						if (element is OnPointerEventModifier && element.eventType == PointerEventType.RELEASE)
-							add(element)
-					}
-				}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-			}.orEmpty()
-
-		find(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.RELEASE)
 
 		return super.mouseReleased(mouseX, mouseY, button)
 	}
 
-	var lastMouseX = 0.0
-	var lastMouseY = 0.0
-
 	override fun mouseMoved(mouseX: Double, mouseY: Double) {
-		fun findMoved(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { findMoved(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }
-				?.let {
-					buildList {
-						node.modifier.foldIn(Unit) { _, element ->
-							if (element is OnPointerEventModifier && element.eventType == PointerEventType.MOVE)
-								add(element)
-						}
-					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-				}.orEmpty()
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.MOVE)
 
-		findMoved(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.ENTER) {
+			it.isBounded(
+				mouseX.toInt(),
+				mouseY.toInt()
+			) && !it.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
+		}
 
-		fun findEnter(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { findEnter(it) } + node.takeIf {
-				node.isBounded(
-					mouseX.toInt(),
-					mouseY.toInt()
-				) && !node.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
-			}
-				?.let {
-					buildList {
-						node.modifier.foldIn(Unit) { _, element ->
-							if (element is OnPointerEventModifier && element.eventType == PointerEventType.ENTER)
-								add(element)
-						}
-					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-				}.orEmpty()
-
-		findEnter(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
-
-		fun findExit(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { findExit(it) } + node.takeIf {
-				node.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) &&
-						!node.isBounded(
-							mouseX.toInt(),
-							mouseY.toInt()
-						)
-			}
-				?.let {
-					buildList {
-						node.modifier.foldIn(Unit) { _, element ->
-							if (element is OnPointerEventModifier && element.eventType == PointerEventType.EXIT)
-								add(element)
-						}
-					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-				}.orEmpty()
-
-		findExit(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.EXIT) {
+			!it.isBounded(
+				mouseX.toInt(),
+				mouseY.toInt()
+			) && it.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
+		}
 
 		lastMouseX = mouseX
 		lastMouseY = mouseY
 	}
 
 	override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
-		fun find(node: LayoutNode): List<Pair<LayoutNode, List<OnPointerEventModifier>>> =
-			node.children.flatMap { find(it) } + node.takeIf { node.isBounded(mouseX.toInt(), mouseY.toInt()) }
-				?.let {
-					buildList {
-						node.modifier.foldIn(Unit) { _, element ->
-							if (element is OnPointerEventModifier && element.eventType == PointerEventType.SCROLL)
-								add(element)
-						}
-					}.takeIf { it.isNotEmpty() }?.let { listOf(node to it) }
-				}.orEmpty()
-
-		find(rootNode)
-			.takeIf { it.isNotEmpty() }
-			?.any { (child, mods) -> mods.any { it.onEvent(child) } }
+		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.SCROLL)
 
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
 	}
-
-//	override fun mouseMoved(mouseX: Double, mouseY: Double) {
-//		fun findHovered(node: LayoutNode): List<Pair<LayoutNode, OnHoverModifier>> {
-//			return node.children
-//				.flatMap { findHovered(it) } +
-//					node.takeIf { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
-//						?.modifier?.get<OnHoverModifier>()
-//						?.let { listOf(node to it) }
-//						.orEmpty()
-//		}
-//
-//		findHovered(rootNode)
-//			.takeIf { it.isNotEmpty() }
-//			?.any { (child, mod) -> mod.onHover(child) }
-//	}
 
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
 		// CTRL + SHIFT
