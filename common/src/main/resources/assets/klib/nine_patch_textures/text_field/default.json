@@ -1,5 +1,5 @@
 {
-	"texture": "klib:textures/gui/panel_dark.png",
+	"texture": "klib:textures/gui/text_field.png",
 	"texture_width": 16,
 	"texture_height": 16,
 	"patch_size": {

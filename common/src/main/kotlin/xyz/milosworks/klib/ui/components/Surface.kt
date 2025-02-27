@@ -36,7 +36,7 @@ fun DarkSurface(
 	modifier: Modifier = Modifier,
 	contentAlignment: Alignment = Alignment.TopStart,
 	content: @Composable () -> Unit
-) = Surface(KLib["panel/dark"], modifier, contentAlignment, content)
+) = Surface(KLib["panel/dark"], contentAlignment, modifier, content)
 
 /**
  * Creates a Minecraft panel with a nine-patch texture.
@@ -61,8 +61,8 @@ fun DarkSurface(
 @Composable
 fun Surface(
 	texture: ResourceLocation = KLib["panel/normal"],
-	modifier: Modifier = Modifier,
 	contentAlignment: Alignment = Alignment.TopStart,
+	modifier: Modifier = Modifier,
 	content: @Composable () -> Unit
 ) {
 	val measurePolicy = remember(contentAlignment) { BoxMeasurePolicy(contentAlignment) }

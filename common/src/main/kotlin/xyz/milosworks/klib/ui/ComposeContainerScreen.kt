@@ -97,8 +97,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 
 	private fun processEvent(
 		node: LayoutNode,
-		mouseX: Int,
-		mouseY: Int,
+		mouseX: Double,
+		mouseY: Double,
 		eventType: PointerEventType,
 		condition: (LayoutNode) -> Boolean = { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
 	): Boolean {
@@ -112,7 +112,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 			node.modifier.foldIn(Unit) { acc, el ->
 				if (handled == true) return@foldIn
 
-				if (el is OnPointerEventModifier && el.eventType == eventType) handled = el.onEvent(node)
+				if (el is OnPointerEventModifier && el.eventType == eventType) handled =
+					el.onEvent(node, mouseX, mouseY)
 			}
 		}
 
@@ -120,42 +121,58 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 	}
 
 	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.PRESS)
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.PRESS)
 
 		return super.mouseClicked(mouseX, mouseY, button)
 	}
 
 	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.RELEASE)
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.RELEASE)
 
 		return super.mouseReleased(mouseX, mouseY, button)
 	}
 
 	override fun mouseMoved(mouseX: Double, mouseY: Double) {
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.MOVE)
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.MOVE)
 
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.ENTER) {
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.ENTER, {
 			it.isBounded(
 				mouseX.toInt(),
 				mouseY.toInt()
 			) && !it.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
-		}
+		})
 
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.EXIT) {
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.EXIT, {
 			!it.isBounded(
 				mouseX.toInt(),
 				mouseY.toInt()
 			) && it.isBounded(lastMouseX.toInt(), lastMouseY.toInt())
-		}
+		})
 
 		lastMouseX = mouseX
 		lastMouseY = mouseY
 	}
 
 	override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
-		processEvent(rootNode, mouseX.toInt(), mouseY.toInt(), PointerEventType.SCROLL)
+		processEvent(rootNode, mouseX, mouseY, PointerEventType.SCROLL)
 
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
+	}
+
+	private fun processEventKey(node: LayoutNode, keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+		var handled = false
+
+		for (child in node.children) {
+			handled = processEventKey(child, keyCode, scanCode, modifiers) || handled
+		}
+
+		node.modifier.foldIn(Unit) { acc, el ->
+			if (handled == true) return@foldIn
+
+			if (el is OnKeyEventModifier) handled = el.onEvent(node, keyCode, scanCode, modifiers)
+		}
+
+		return handled
 	}
 
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
@@ -165,7 +182,31 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
 		if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
 
+		processEventKey(rootNode, keyCode, scanCode, modifiers)
+
 		return super.keyPressed(keyCode, scanCode, modifiers)
+	}
+
+	private fun processEventChar(node: LayoutNode, codePoint: Char, modifiers: Int): Boolean {
+		var handled = false
+
+		for (child in node.children) {
+			handled = processEventChar(child, codePoint, modifiers) || handled
+		}
+
+		node.modifier.foldIn(Unit) { acc, el ->
+			if (handled == true) return@foldIn
+
+			if (el is OnCharTypedModifier) handled = el.onEvent(node, codePoint, modifiers)
+		}
+
+		return handled
+	}
+
+	override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
+		processEventChar(rootNode, codePoint, modifiers)
+
+		return super.charTyped(codePoint, modifiers)
 	}
 
 	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {

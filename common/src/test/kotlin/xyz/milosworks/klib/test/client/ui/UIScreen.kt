@@ -1,6 +1,6 @@
 package xyz.milosworks.klib.test.client.ui
 
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
@@ -22,28 +22,36 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 
 	@Composable
 	fun content() {
+		var active: Boolean by remember { mutableStateOf(false) }
+		var text: String by remember { mutableStateOf("") }
+
 		Surface {
 			Column(
-				modifier = Modifier.onPointerEvent(PointerEventType.SCROLL) { println("scroll column"); true }
+				modifier = Modifier.onPointerEvent(PointerEventType.SCROLL) { _, _, _ -> println("scroll column"); true }
 			) {
 				Slot()
 				Text(
 					Component.literal("Hello World!"),
 					2f,
 					modifier = Modifier
-						.onPointerEvent(PointerEventType.ENTER) { println("enter text"); true }
-						.onPointerEvent(PointerEventType.EXIT) { println("exit text"); true }
-//						.onHover { true.also { println("hovered text") } }
+						.onPointerEvent(PointerEventType.ENTER) { _, _, _ -> println("enter text"); true }
+						.onPointerEvent(PointerEventType.EXIT) { _, _, _ -> println("exit text"); true }
+				)
+				TextField(
+					text,
+					{ text = it },
+					modifier = Modifier.size(90, 18)
 				)
 				Spacer(
 					Modifier.size(50, 50)
 						.background(KColor.BLUE).outline(KColor.RED)
 						.combinedClickable(
-							onLongClick = { println("onLongClick spacer"); false },
-							onDoubleClick = { println("onDoubleClick spacer"); false },
-							onClick = { println("onClick spacer"); false }
+							onLongClick = { _, _, _ -> println("onLongClick spacer"); false },
+							onDoubleClick = { _, _, _ -> println("onDoubleClick spacer"); false },
+							onClick = { _, _, _ -> println("onClick spacer"); false }
 						)
 				)
+				Button(modifier = Modifier.size(20, 20)) { println("button clicked"); active = (active == false) }
 				Texture(
 					ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
 					0f,
@@ -52,8 +60,12 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 					64,
 					64,
 					64,
-					Modifier.size(100).onPointerEvent(PointerEventType.MOVE) { println("moved texture"); true }
+					Modifier.size(100)
+						.onPointerEvent(PointerEventType.MOVE) { _, _, _ -> println("moved texture"); true }
 				)
+
+
+				if (active) Text(Component.literal("Clicked Button!"))
 			}
 		}
 	}

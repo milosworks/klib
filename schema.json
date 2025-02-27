@@ -1,0 +1,88 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"texture": {
+			"type": "string",
+			"pattern": "^[a-z0-9_:.\/]+$"
+		},
+		"texture_width": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"texture_height": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"u": {
+			"type": "integer",
+			"minimum": 0,
+			"default": 0
+		},
+		"v": {
+			"type": "integer",
+			"minimum": 0,
+			"default": 0
+		},
+		"repeat": {
+			"type": "boolean",
+			"default": false
+		},
+		"corners_size": {
+			"type": "object",
+			"properties": {
+				"width": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"height": {
+					"type": "integer",
+					"minimum": 1
+				}
+			},
+			"required": [
+				"width",
+				"height"
+			]
+		},
+		"center_size": {
+			"type": "object",
+			"properties": {
+				"width": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"height": {
+					"type": "integer",
+					"minimum": 1
+				}
+			},
+			"required": [
+				"width",
+				"height"
+			]
+		},
+		"patch_size": {
+			"type": "object",
+			"properties": {
+				"width": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"height": {
+					"type": "integer",
+					"minimum": 1
+				}
+			},
+			"required": [
+				"width",
+				"height"
+			]
+		}
+	},
+	"required": [
+		"texture",
+		"texture_width",
+		"texture_height"
+	]
+}

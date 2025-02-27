@@ -65,6 +65,7 @@ allprojects {
 				jvmTarget.set(JvmTarget.JVM_21)
 
 				optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
+				freeCompilerArgs.add("-Xwhen-guards")
 			}
 		}
 	}
