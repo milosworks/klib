@@ -5,18 +5,16 @@ import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
 	java
-	idea
+
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.kotlin.serialization)
+	alias(libs.plugins.kotlin.compose)
 
 	alias(libs.plugins.architectury)
-	alias(libs.plugins.architectury.kotlin) apply false
+	alias(libs.plugins.architectury.kotlin)
 	alias(libs.plugins.architectury.loom) apply false
 
-	alias(libs.plugins.kotlin.serialization)
-	alias(libs.plugins.kotlin.compose) apply false
-	alias(libs.plugins.kotlin.compose.plugin) apply false
-	alias(libs.plugins.archie) apply false
-
-//	alias(libs.plugins.modpublisher)
+	alias(libs.plugins.compose)
 }
 
 architectury.minecraft = libs.versions.minecraft.get()
@@ -34,56 +32,6 @@ val String.localOrEnv: String?
 
 val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
-allprojects {
-	if (project.layout.projectDirectory.asFile.name == "docs") return@allprojects
-
-	apply(plugin = "java")
-	apply(plugin = "idea")
-
-	apply(plugin = "org.jetbrains.kotlin.jvm")
-	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-	apply(plugin = "org.jetbrains.compose")
-	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
-
-	apply(plugin = "architectury-plugin")
-	apply(plugin = "com.withertech.architectury.kotlin.plugin")
-
-//	apply(plugin = "maven-publish")
-
-	version = modVersion
-	group = "mod_group".prop!!
-	base.archivesName = "mod_id".prop!!
-
-	tasks {
-		withType<JavaCompile> {
-			options.encoding = "UTF-8"
-			options.release.set(JavaVersion.VERSION_21.toString().toInt())
-		}
-
-		withType<KotlinCompile> {
-			compilerOptions {
-				jvmTarget.set(JvmTarget.JVM_21)
-
-				optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
-				freeCompilerArgs.add("-Xwhen-guards")
-			}
-		}
-	}
-
-	java.withSourcesJar()
-
-	architectury {
-		compileOnly()
-	}
-
-	idea {
-		module {
-			isDownloadSources = true
-			isDownloadJavadoc = true
-		}
-	}
-}
-
 subprojects {
 	apply(plugin = "dev.architectury.loom")
 
@@ -97,16 +45,10 @@ subprojects {
 		google()
 
 		maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-		maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 		maven("https://maven.parchmentmc.org")
 		maven("https://maven.fabricmc.net/")
-		maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
-		maven("https://thedarkcolour.github.io/KotlinForForge/") {
-			name = "Kotlin for Forge"
-			content {
-				includeGroup("thedarkcolour")
-			}
-		}
+		maven("https://maven.neoforged.net/releases/")
+		maven("https://thedarkcolour.github.io/KotlinForForge/")
 	}
 
 	@Suppress("UnstableApiUsage")
@@ -121,35 +63,45 @@ subprojects {
 	}
 }
 
-idea {
-	module {
-		isDownloadSources = true
-		isDownloadJavadoc = true
+allprojects {
+	apply(plugin = "java")
+
+	apply(plugin = "org.jetbrains.kotlin.jvm")
+	apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+	apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+	apply(plugin = "org.jetbrains.compose")
+
+	apply(plugin = "architectury-plugin")
+
+//	apply(plugin = "maven-publish")
+
+	version = modVersion
+	group = "mod_group".prop!!
+	base.archivesName = "mod_id".prop!!
+
+	tasks {
+		withType<JavaCompile> {
+			options.encoding = "UTF-8"
+			options.release.set(21)
+		}
+
+		withType<KotlinCompile> {
+			compilerOptions {
+				jvmTarget.set(JvmTarget.JVM_21)
+
+				optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
+				freeCompilerArgs.add("-Xwhen-guards")
+			}
+		}
 	}
+
+	architectury {
+		compileOnly()
+	}
+
+	java.withSourcesJar()
 }
 
-//publishing {
-//	publications {
-//		create<MavenPublication>("mavenJava") {
-//			groupId = "mod_group_id".prop
-//			artifactId = modId
-//			version = modVersion
-//
-//			from(components["java"])
-//		}
-//	}
-//	repositories {
-//		maven {
-//			url = uri("file://${project.projectDir}/repo")
-//		}
-//
-//		maven {
-//			name = "milosworks"
-//			url = uri("https://maven.milosworks.xyz/snapshots")
-//			credentials(PasswordCredentials::class)
-//			authentication {
-//				create<BasicAuthentication>("basic")
-//			}
-//		}
-//	}
-//}
+dependencies {
+	// dokka projects
+}

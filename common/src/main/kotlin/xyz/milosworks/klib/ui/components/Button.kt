@@ -11,12 +11,13 @@ import xyz.milosworks.klib.ui.extensions.ninePatchTexture
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.MeasureResult
 import xyz.milosworks.klib.ui.layout.Renderer
-import xyz.milosworks.klib.ui.modifiers.*
+import xyz.milosworks.klib.ui.modifiers.Modifier
+import xyz.milosworks.klib.ui.modifiers.TextureModifier
+import xyz.milosworks.klib.ui.modifiers.firstOrNull
+import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
+import xyz.milosworks.klib.ui.modifiers.input.onPointerEvent
 import xyz.milosworks.klib.ui.nodes.UINode
 
-const val DEFAULT_TEXTURE = "/default"
-const val DISABLED_TEXTURE = "/disabled"
-const val HOVERED_TEXTURE = "/hovered"
 
 @Composable
 fun Button(text: Component? = null, active: Boolean = true, modifier: Modifier, onClick: (UINode) -> Unit) {
@@ -41,14 +42,14 @@ fun Button(text: Component? = null, active: Boolean = true, modifier: Modifier, 
 			) {
 				guiGraphics.ninePatchTexture(
 					x, y, node.width, node.height,
-					if (!active) texture.withSuffix(DISABLED_TEXTURE)
-					else if (hovered) texture.withSuffix(HOVERED_TEXTURE)
-					else texture.withSuffix(DEFAULT_TEXTURE)
+					if (!active) texture.withSuffix(TextureStates.DISABLED)
+					else if (hovered) texture.withSuffix(TextureStates.HOVERED)
+					else texture.withSuffix(TextureStates.DEFAULT)
 				)
 			}
 		},
 		modifier = Modifier
-			.onPointerEvent(PointerEventType.ENTER) { _, _, _ ->
+			.onPointerEvent(PointerEventType.ENTER) { _, e ->
 				hovered = true
 
 				GLFW.glfwSetCursor(
@@ -56,9 +57,9 @@ fun Button(text: Component? = null, active: Boolean = true, modifier: Modifier, 
 					GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR)
 				)
 
-				true
+				e.consume()
 			}
-			.onPointerEvent(PointerEventType.EXIT) { _, _, _ ->
+			.onPointerEvent(PointerEventType.EXIT) { _, e ->
 				hovered = false
 
 				GLFW.glfwSetCursor(
@@ -66,9 +67,9 @@ fun Button(text: Component? = null, active: Boolean = true, modifier: Modifier, 
 					GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR)
 				)
 
-				true
+				e.consume()
 			}
-			.onPointerEvent(PointerEventType.PRESS) { node, _, _ -> if (active) onClick(node); true }
+			.onPointerEvent(PointerEventType.PRESS) { node, e -> if (active) onClick(node); e.consume() }
 				then modifier,
 	) {
 		if (text != null) Text(text)

@@ -123,7 +123,6 @@ inline fun <reified T : Modifier.Element<T>> Modifier.getAll(): List<T> = buildL
 	foldIn(Unit) { acc, element -> if (element is T) add(element) }
 }
 
-
 /**
  * A node in a [Modifier] chain. A CombinedModifier always contains at least two elements;
  * a Modifier [outer] that wraps around the Modifier [inner].

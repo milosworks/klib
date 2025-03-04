@@ -3,10 +3,6 @@ import net.kernelpanicsoft.archie.plugin.bundleRuntimeLibrary
 plugins {
 	alias(libs.plugins.shadow)
 	alias(libs.plugins.archie)
-	alias(libs.plugins.kotlin.compose)
-	alias(libs.plugins.kotlin.compose.plugin)
-
-	`dokka-convention`
 }
 
 val String.prop: String?
@@ -18,10 +14,10 @@ val String.env: String?
 val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
 architectury {
+	platformSetupLoomIde()
 	fabric()
 }
 
-@Suppress("UnstableApiUsage")
 configurations {
 	create("common")
 	create("shadowCommon")
@@ -32,6 +28,8 @@ configurations {
 }
 
 loom {
+	accessWidenerPath.set(project(":common").loom.accessWidenerPath)
+
 	mods {
 		maybeCreate("main").apply {
 			sourceSet(project.sourceSets.main.get())
@@ -46,9 +44,24 @@ loom {
 	runs {
 		getByName("client") {
 			source(sourceSets.test.get())
+
+			programArgs("--username", "Vyrek_", "--quickPlaySingleplayer", "Test")
 		}
 	}
 }
+
+//sourceSets {
+//	main {
+//		resources {
+//		}
+//		kotlin {
+//			srcDir("src/main/gametest")
+//		}
+//		java {
+//			srcDir("src/main/mixin")
+//		}
+//	}
+//}
 
 dependencies {
 	modImplementation(libs.fabric.loader)
@@ -56,10 +69,10 @@ dependencies {
 	modApi(libs.architectury.fabric)
 	modImplementation(libs.kotlin.fabric)
 
-	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.nbt)
-	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
-	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
-	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
+	bundleRuntimeLibrary(libs.kotlinx.serialization.nbt)
+	bundleRuntimeLibrary(libs.kotlinx.serialization.toml)
+	bundleRuntimeLibrary(libs.kotlinx.serialization.json5)
+	bundleRuntimeLibrary(libs.kotlinx.serialization.cbor)
 
 	bundleRuntimeLibrary(compose.runtime)
 
@@ -75,6 +88,8 @@ modResources {
 }
 
 tasks {
+	base.archivesName.set(base.archivesName.get() + "-fabric")
+
 	processResources {
 		from(project(":common").sourceSets.main.get().resources) {
 			include("assets/${project.properties["mod_id"]}/**")
@@ -93,15 +108,13 @@ tasks {
 	}
 
 	shadowJar {
-		configurations = listOf(
-			project.configurations.getByName("shadowCommon"),
-			project.configurations.getByName("shadow")
-		)
+		configurations =
+			listOf(project.configurations.getByName("shadowCommon"), project.configurations.getByName("shadow"))
 		archiveClassifier.set("dev-shadow")
 	}
 
 	remapJar {
-//		injectAccessWidener.set(true)
+		injectAccessWidener.set(true)
 		inputFile.set(shadowJar.get().archiveFile)
 		dependsOn(shadowJar)
 	}
@@ -109,20 +122,9 @@ tasks {
 	jar.get().archiveClassifier.set("dev")
 
 	sourcesJar {
-		project(":common").tasks.sourcesJar.also {
-			dependsOn(it)
-			from(it.get().archiveFile.map { zipTree(it) })
-		}
+		val commonSources = project(":common").tasks.sourcesJar
+		dependsOn(commonSources)
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	}
-}
-
-base.archivesName.set(base.archivesName.get() + "-fabric")
-
-dokka {
-	moduleName.set("Fabric")
-
-	dokkaSourceSets.configureEach {
-		includes.from("ModuleFabric.md")
+		from(commonSources.get().archiveFile.map { zipTree(it) })
 	}
 }

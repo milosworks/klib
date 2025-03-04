@@ -3,6 +3,10 @@ import net.kernelpanicsoft.archie.plugin.bundleRuntimeLibrary
 plugins {
 	alias(libs.plugins.shadow)
 	alias(libs.plugins.archie)
+	alias(libs.plugins.kotlin.compose)
+	alias(libs.plugins.kotlin.compose.plugin)
+
+	`dokka-convention`
 }
 
 val String.prop: String?
@@ -14,8 +18,7 @@ val String.env: String?
 val modVersion = ("TAG".env ?: "mod_version".prop)!!
 
 architectury {
-	platformSetupLoomIde()
-	neoForge()
+	fabric()
 }
 
 @Suppress("UnstableApiUsage")
@@ -29,71 +32,49 @@ configurations {
 }
 
 loom {
-	accessWidenerPath.set(project(":common").loom.accessWidenerPath)
-
 	mods {
 		maybeCreate("main").apply {
 			sourceSet(project.sourceSets.main.get())
+			sourceSet(project(":common").sourceSets.main.get())
 		}
 		create("test") {
 			sourceSet(project.sourceSets.test.get())
+			sourceSet(project(":common").sourceSets.test.get())
 		}
 	}
 
 	runs {
 		getByName("client") {
-			source(sourceSets.main.get())
 			source(sourceSets.test.get())
-
-			programArgs("--username", "Vyrek_", "--quickPlaySingleplayer", "Test")
 		}
 	}
 }
 
-//sourceSets {
-//	main {
-//		resources {
-//			srcDir("src/main/generated")
-//		}
-//		kotlin {
-//			srcDir("src/main/gametest")
-//		}
-//		java {
-//			srcDir("src/main/mixin")
-//		}
-//	}
-//}
-
 dependencies {
-	compileOnly(libs.kotlin.stdlib)
+	modImplementation(libs.fabric.loader)
+	modApi(libs.fabric.api)
+	modApi(libs.architectury.fabric)
+	modImplementation(libs.kotlin.fabric)
 
-	neoForge(libs.neoforge)
-	modApi(libs.architectury.neoforge)
-	implementation(libs.kotlin.neoforge) {
-		exclude(group = "net.neoforged.fancymodloader", module = "loader")
-	}
-
-	bundleRuntimeLibrary(libs.kotlinx.serialization.nbt)
-	bundleRuntimeLibrary(libs.kotlinx.serialization.toml)
-	bundleRuntimeLibrary(libs.kotlinx.serialization.json5)
-	bundleRuntimeLibrary(libs.kotlinx.serialization.cbor)
+	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.nbt)
+	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.toml)
+	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.json5)
+	bundleRuntimeLibrary(rootProject.libs.kotlinx.serialization.cbor)
 
 	bundleRuntimeLibrary(compose.runtime)
 
 	testImplementation(project.project(":common").sourceSets.test.get().output)
 
 	"common"(project(":common", "namedElements")) { isTransitive = false }
-	"shadowCommon"(project(":common", "transformProductionNeoForge")) { isTransitive = false }
+	"shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
 }
 
 modResources {
 	properties.put("release_version", modVersion)
-	filesMatching.add("META-INF/neoforge.mods.toml")
+	filesMatching.add("fabric.mod.json")
 }
 
 tasks {
-	base.archivesName.set(base.archivesName.get() + "-neoforge")
-
 	processResources {
 		from(project(":common").sourceSets.main.get().resources) {
 			include("assets/${project.properties["mod_id"]}/**")
@@ -112,24 +93,36 @@ tasks {
 	}
 
 	shadowJar {
-		exclude("fabric.mod.json")
-		configurations =
-			listOf(project.configurations.getByName("shadowCommon"), project.configurations.getByName("shadow"))
+		configurations = listOf(
+			project.configurations.getByName("shadowCommon"),
+			project.configurations.getByName("shadow")
+		)
 		archiveClassifier.set("dev-shadow")
 	}
 
 	remapJar {
+//		injectAccessWidener.set(true)
 		inputFile.set(shadowJar.get().archiveFile)
-//		atAccessWideners.set(setOf(loom.accessWidenerPath.get().asFile.path))
 		dependsOn(shadowJar)
 	}
 
 	jar.get().archiveClassifier.set("dev")
 
 	sourcesJar {
-		val commonSources = project(":common").tasks.sourcesJar
-		dependsOn(commonSources)
+		project(":common").tasks.sourcesJar.also {
+			dependsOn(it)
+			from(it.get().archiveFile.map { zipTree(it) })
+		}
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-		from(commonSources.get().archiveFile.map { zipTree(it) })
+	}
+}
+
+base.archivesName.set(base.archivesName.get() + "-fabric")
+
+dokka {
+	moduleName.set("Fabric")
+
+	dokkaSourceSets.configureEach {
+		includes.from("ModuleFabric.md")
 	}
 }

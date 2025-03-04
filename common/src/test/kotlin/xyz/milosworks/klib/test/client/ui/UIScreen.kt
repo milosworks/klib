@@ -8,7 +8,13 @@ import net.minecraft.world.entity.player.Inventory
 import xyz.milosworks.klib.ui.ComposeContainerScreen
 import xyz.milosworks.klib.ui.components.*
 import xyz.milosworks.klib.ui.layout.Column
-import xyz.milosworks.klib.ui.modifiers.*
+import xyz.milosworks.klib.ui.modifiers.Modifier
+import xyz.milosworks.klib.ui.modifiers.background
+import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
+import xyz.milosworks.klib.ui.modifiers.input.combinedClickable
+import xyz.milosworks.klib.ui.modifiers.input.onPointerEvent
+import xyz.milosworks.klib.ui.modifiers.outline
+import xyz.milosworks.klib.ui.modifiers.size
 import xyz.milosworks.klib.ui.util.KColor
 
 class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
@@ -27,28 +33,29 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 
 		Surface {
 			Column(
-				modifier = Modifier.onPointerEvent(PointerEventType.SCROLL) { _, _, _ -> println("scroll column"); true }
+				modifier = Modifier
+					.onPointerEvent(PointerEventType.SCROLL) { _, event -> println("scroll column"); event.consume() }
 			) {
 				Slot()
 				Text(
 					Component.literal("Hello World!"),
 					2f,
 					modifier = Modifier
-						.onPointerEvent(PointerEventType.ENTER) { _, _, _ -> println("enter text"); true }
-						.onPointerEvent(PointerEventType.EXIT) { _, _, _ -> println("exit text"); true }
+						.onPointerEvent(PointerEventType.ENTER) { _, event -> println("enter text"); event.consume() }
+						.onPointerEvent(PointerEventType.EXIT) { _, event -> println("exit text"); event.consume() }
 				)
 				TextField(
 					text,
-					{ text = it },
+					onValueChange = { text = if (it.endsWith("1")) it.dropLast(1) else it },
 					modifier = Modifier.size(90, 18)
 				)
 				Spacer(
 					Modifier.size(50, 50)
 						.background(KColor.BLUE).outline(KColor.RED)
 						.combinedClickable(
-							onLongClick = { _, _, _ -> println("onLongClick spacer"); false },
-							onDoubleClick = { _, _, _ -> println("onDoubleClick spacer"); false },
-							onClick = { _, _, _ -> println("onClick spacer"); false }
+							onLongClick = { _, _ -> println("onLongClick spacer"); false },
+							onDoubleClick = { _, _ -> println("onDoubleClick spacer"); false },
+							onClick = { _, _ -> println("onClick spacer"); false }
 						)
 				)
 				Button(modifier = Modifier.size(20, 20)) { println("button clicked"); active = (active == false) }
@@ -61,9 +68,8 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 					64,
 					64,
 					Modifier.size(100)
-						.onPointerEvent(PointerEventType.MOVE) { _, _, _ -> println("moved texture"); true }
+						.onPointerEvent(PointerEventType.MOVE) { _, event -> println("moved texture"); event.consume() }
 				)
-
 
 				if (active) Text(Component.literal("Clicked Button!"))
 			}

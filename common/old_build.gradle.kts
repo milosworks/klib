@@ -1,27 +1,22 @@
-architectury {
-	common("fabric", "neoforge")
+plugins {
+	alias(libs.plugins.kotlin.compose)
+	alias(libs.plugins.kotlin.compose.plugin)
+
+	`dokka-convention`
 }
 
 loom {
 	accessWidenerPath = file("src/main/resources/${project.properties["mod_id"]}.accesswidener")
 }
 
-//sourceSets {
-//	main {
-//		kotlin {
-//			srcDir("src/main/gametest")
-//			srcDir("src/main/datagen")
-//		}
-//		java {
-//			srcDir("src/main/mixin")
-//		}
-//	}
-//}
+architectury {
+	common("fabric", "neoforge")
+}
 
 dependencies {
-	compileOnly(libs.kotlinx.serialization)
-	compileOnlyApi(libs.kotlinx.serialization.json)
 	compileOnly(kotlin("reflect"))
+	compileOnlyApi(libs.kotlinx.serialization)
+	compileOnly(libs.kotlinx.serialization.json)
 
 	api(libs.kotlinx.serialization.nbt) { isTransitive = false }
 	api(libs.kotlinx.serialization.toml) { isTransitive = false }
@@ -30,12 +25,17 @@ dependencies {
 
 	api(compose.runtime)
 
-	// We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-	// Do NOT use other classes from fabric loader
-	modImplementation(libs.fabric.loader)
 	modApi(libs.architectury.common)
 }
 
 tasks {
 	base.archivesName.set(base.archivesName.get() + "-common")
+}
+
+dokka {
+	moduleName.set("Common")
+
+	dokkaSourceSets.configureEach {
+		includes.from("ModuleCommon.md")
+	}
 }
