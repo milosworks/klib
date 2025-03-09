@@ -1,0 +1,9 @@
+{
+	"texture": "klib:textures/gui/bedrock/text_field.png",
+	"texture_width": 16,
+	"texture_height": 32,
+	"patch_size": {
+		"width": 5,
+		"height": 5
+	}
+}

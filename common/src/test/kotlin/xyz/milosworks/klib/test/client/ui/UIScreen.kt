@@ -18,63 +18,76 @@ import xyz.milosworks.klib.ui.modifiers.size
 import xyz.milosworks.klib.ui.util.KColor
 
 class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
-	ComposeContainerScreen<UIMenu>(menu, inventory, title) {
+    ComposeContainerScreen<UIMenu>(menu, inventory, title) {
 
-	init {
-		start {
-			content()
-		}
-	}
+    init {
+        start {
+            content()
+        }
+    }
 
-	@Composable
-	fun content() {
-		var active: Boolean by remember { mutableStateOf(false) }
-		var text: String by remember { mutableStateOf("") }
+    @Composable
+    fun content() {
+        var active: Boolean by remember { mutableStateOf(false) }
+        var text: String by remember { mutableStateOf("") }
 
-		Surface {
-			Column(
-				modifier = Modifier
-					.onPointerEvent(PointerEventType.SCROLL) { _, event -> println("scroll column"); event.consume() }
-			) {
-				Slot()
-				Text(
-					Component.literal("Hello World!"),
-					2f,
-					modifier = Modifier
-						.onPointerEvent(PointerEventType.ENTER) { _, event -> println("enter text"); event.consume() }
-						.onPointerEvent(PointerEventType.EXIT) { _, event -> println("exit text"); event.consume() }
-				)
-				TextField(
-					text,
-					onValueChange = { text = if (it.endsWith("1")) it.dropLast(1) else it },
-					modifier = Modifier.size(90, 18)
-				)
-				Spacer(
-					Modifier.size(50, 50)
-						.background(KColor.BLUE).outline(KColor.RED)
-						.combinedClickable(
-							onLongClick = { _, _ -> println("onLongClick spacer"); false },
-							onDoubleClick = { _, _ -> println("onDoubleClick spacer"); false },
-							onClick = { _, _ -> println("onClick spacer"); false }
-						)
-				)
-				Button(modifier = Modifier.size(20, 20)) { println("button clicked"); active = (active == false) }
-				Texture(
-					ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
-					0f,
-					0f,
-					64,
-					64,
-					64,
-					64,
-					Modifier.size(100)
-						.onPointerEvent(PointerEventType.MOVE) { _, event -> println("moved texture"); event.consume() }
-				)
+        Surface {
+            Column(
+                modifier = Modifier
+                    .onPointerEvent(PointerEventType.SCROLL) { _, event -> println("scroll column"); event.consume() }
+            ) {
+                Slot()
+                Text(
+                    Component.literal("Hello World!"),
+                    2f,
+                    modifier = Modifier
+                        .onPointerEvent(PointerEventType.ENTER) { _, event -> println("enter text"); event.consume() }
+                        .onPointerEvent(PointerEventType.EXIT) { _, event -> println("exit text"); event.consume() }
+                )
+                Theme(type = ThemeTypes.BEDROCK) {
+                    TextField(
+                        text,
+//						enabled = false,
+                        onValueChange = { text = if (it.endsWith("1")) it.dropLast(1) else it },
+                        placeholder = "Hello World!",
+                        modifier = Modifier.size(90, 18)
+                    )
+                }
+                Spacer(
+                    Modifier.size(50, 50)
+                        .background(KColor.BLUE).outline(KColor.RED)
+                        .combinedClickable(
+                            onLongClick = { _, _ -> println("onLongClick spacer"); false },
+                            onDoubleClick = { _, _ -> println("onDoubleClick spacer"); false },
+                            onClick = { _, _ -> println("onClick spacer"); false }
+                        )
+                )
+                Theme(type = ThemeTypes.BEDROCK) {
+                    Button(modifier = Modifier.size(20, 20)) {
+                        println("button clicked"); active = (active == false)
+                    }
+                }
+                Button(modifier = Modifier.size(20, 20)) {
+                    println("button clicked"); active = (active == false)
+                }
+                Texture(
+                    ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
+                    0f,
+                    0f,
+                    64,
+                    64,
+                    64,
+                    64,
+                    Modifier.size(50)
+                        .onPointerEvent(PointerEventType.MOVE) { _, event -> println("moved texture"); event.consume() }
+                )
 
-				if (active) Text(Component.literal("Clicked Button!"))
-			}
-		}
-	}
+                val textSize = getTextSize(Component.literal("Clicked Button!"))
+                if (active) Text(Component.literal("Clicked Button!"))
+                else Spacer(Modifier.size(textSize.first, textSize.second))
+            }
+        }
+    }
 
-	override fun renderLabels(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {}
+    override fun renderLabels(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {}
 }

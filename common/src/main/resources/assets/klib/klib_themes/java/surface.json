@@ -1,0 +1,27 @@
+{
+    "states": {
+        "default": {
+            "texture": "klib:textures/gui/java/surface.png",
+            "texture_size": {
+                "width": 16,
+                "height": 48
+            },
+            "patch_size": {
+                "width": 5,
+                "height": 5
+            }
+        }
+    },
+    "variants": {
+        "dark": {
+            "default": {
+                "v": 16
+            }
+        },
+        "inset": {
+            "default": {
+                "v": 32
+            }
+        }
+    }
+}

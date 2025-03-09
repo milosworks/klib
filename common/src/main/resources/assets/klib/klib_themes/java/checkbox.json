@@ -1,0 +1,21 @@
+{
+    "ninepatch": false,
+    "states": {
+        "default": {
+            "texture": "klib:textures/gui/java/checkbox.png",
+            "texture_size": {
+                "width": 20,
+                "height": 80
+            }
+        },
+        "hovered": {
+            "v": 20
+        },
+        "clicked": {
+            "v": 40
+        },
+        "activeAndHovered": {
+            "v": 60
+        },
+    }
+}

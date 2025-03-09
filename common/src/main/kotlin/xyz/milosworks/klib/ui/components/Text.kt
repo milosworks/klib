@@ -12,6 +12,16 @@ import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
 
+//fun getTextSize(text: String, scale: Float = 1f, font: Font = Minecraft.getInstance().font) =
+//	getTextSize(Component.literal(text), scale, font)
+
+/**
+ * Returns a Pair with the width and height of a text.
+ */
+fun getTextSize(text: Component, scale: Float = 1f, font: Font = Minecraft.getInstance().font): Pair<Int, Int> =
+	Pair((font.width(text) * scale).toInt(), (font.lineHeight * scale).toInt())
+
+
 /**
  * Renders text with support for scaling, custom fonts, and color.
  *
@@ -68,9 +78,11 @@ fun Text(
 				super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
 			}
 		},
-		modifier = Modifier.sizeIn(
-			minWidth = (font.width(text) * fontScale).toInt(),
-			minHeight = (font.lineHeight * fontScale).toInt()
-		) then modifier,
+		modifier = getTextSize(text, fontScale, font).run {
+			Modifier.sizeIn(
+				minWidth = first,
+				minHeight = second
+			)
+		} then modifier,
 	)
 }

@@ -8,30 +8,32 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
 import org.slf4j.Logger
 import xyz.milosworks.klib.ui.util.NPTResourceLoader
+import xyz.milosworks.klib.ui.util.ThemeResourceListener
 
 /** @suppress suppress for dokka */
 object KLib {
-	const val ID = "klib"
+    const val ID = "klib"
 
-	@JvmField
-	val MOD: Mod = Platform.getMod(ID)
+    @JvmField
+    val MOD: Mod = Platform.getMod(ID)
 
-	@JvmField
-	val LOGGER: Logger = LogUtils.getLogger()
+    @JvmField
+    val LOGGER: Logger = LogUtils.getLogger()
 
-	@JvmStatic
-	operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ID, path)
+    @JvmStatic
+    operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ID, path)
 
-	@JvmStatic
-	fun init() {
-	}
+    @JvmStatic
+    fun init() {
+    }
 
-	@JvmStatic
-	fun initClient() {
-		ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, NPTResourceLoader())
-	}
+    @JvmStatic
+    fun initClient() {
+        ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, NPTResourceLoader())
+        ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, ThemeResourceListener())
+    }
 
-	@JvmStatic
-	fun initCommon() {
-	}
+    @JvmStatic
+    fun initCommon() {
+    }
 }

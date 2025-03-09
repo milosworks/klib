@@ -8,11 +8,12 @@ const val LONG_CLICK_THRESHOLD = 500
 const val DOUBLE_CLICK_THRESHOLD = 300
 
 enum class PointerEventType {
-	/**
-	 * This specific event will not cancel others if you return true
-	 */
+	/** This specific event will not cancel others if you return true */
 	GLOBAL_PRESS,
 	PRESS,
+
+	/** This specific event will not cancel others if you return true */
+	GLOBAL_RELEASE,
 	RELEASE,
 	MOVE,
 	ENTER,

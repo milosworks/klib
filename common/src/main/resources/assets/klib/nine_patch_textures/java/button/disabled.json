@@ -1,8 +1,8 @@
 {
-	"texture": "klib:textures/gui/buttons.png",
+	"texture": "klib:textures/gui/java/button.png",
 	"texture_width": 64,
 	"texture_height": 192,
-	"v": 64,
+	"v": 128,
 	"repeat": true,
 	"corners_size": {
 		"width": 3,

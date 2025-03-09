@@ -12,13 +12,16 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
+import xyz.milosworks.klib.ui.extensions.processCharEvent
+import xyz.milosworks.klib.ui.extensions.processKeyEvent
+import xyz.milosworks.klib.ui.extensions.processPointerEvent
 import xyz.milosworks.klib.ui.layout.Alignment
 import xyz.milosworks.klib.ui.layout.Box
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.modifiers.Constraints
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.fillMaxSize
-import xyz.milosworks.klib.ui.modifiers.input.*
+import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.nodes.UINodeApplier
 import kotlin.coroutines.CoroutineContext
 
@@ -98,93 +101,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 		composeScope.cancel()
 	}
 
-	private fun <T : InputEvent> processInputEvent(
-		node: LayoutNode,
-		event: T,
-		condition: (LayoutNode) -> Boolean = { true },
-		process: (LayoutNode, T) -> Unit
-	) {
-		for (child in node.children.asReversed()) {
-			if (!event.isConsumed) processInputEvent(child, event, condition, process)
-			else break
-		}
-
-		if (!event.isConsumed && condition(node)) process(node, event)
-	}
-
-	@Suppress("NOTHING_TO_INLINE")
-	private inline fun processPointerEvent(
-		node: LayoutNode,
-		mouseX: Double,
-		mouseY: Double,
-		eventType: PointerEventType,
-		noinline condition: (LayoutNode) -> Boolean = { it.isBounded(mouseX.toInt(), mouseY.toInt()) }
-	): PointerEvent {
-		val event = PointerEvent(eventType, mouseX, mouseY)
-
-		processInputEvent(node, event, condition) { currentNode, currentEvent ->
-			currentNode.modifier.foldIn(Unit) { acc, el ->
-				if (el is OnPointerEventModifier && el.eventType == eventType && !currentEvent.isConsumed)
-					el.onEvent(currentNode, event)
-			}
-		}
-
-		return event
-	}
-
-	@Suppress("NOTHING_TO_INLINE")
-	private inline fun processGlobalPressEvent(
-		node: LayoutNode,
-		mouseX: Double,
-		mouseY: Double,
-	) {
-		val event = PointerEvent(PointerEventType.GLOBAL_PRESS, mouseX, mouseY)
-
-		processInputEvent(node, event) { currentNode, currentEvent ->
-			currentNode.modifier.foldIn(Unit) { acc, el ->
-				if (el is OnPointerEventModifier && el.eventType == PointerEventType.GLOBAL_PRESS)
-					el.onEvent(currentNode, event)
-			}
-		}
-	}
-
-	@Suppress("NOTHING_TO_INLINE")
-	private inline fun processKeyEvent(
-		node: LayoutNode,
-		keyCode: Int,
-		scanCode: Int,
-		modifiers: Int
-	): KeyEvent {
-		val event = KeyEvent(keyCode, scanCode, modifiers)
-
-		processInputEvent(node, event) { currentNode, currentEvent ->
-			currentNode.modifier.foldIn(Unit) { acc, el ->
-				if (el is OnKeyEventModifier && !currentEvent.isConsumed) el.onEvent(currentNode, currentEvent)
-			}
-		}
-
-		return event
-	}
-
-	@Suppress("NOTHING_TO_INLINE")
-	private inline fun processCharEvent(
-		node: LayoutNode,
-		codePoint: Char,
-		modifiers: Int
-	): CharEvent {
-		val event = CharEvent(codePoint, modifiers)
-
-		processInputEvent(node, event) { currentNode, currentEvent ->
-			currentNode.modifier.foldIn(Unit) { acc, el ->
-				if (el is OnCharTypedModifier && !currentEvent.isConsumed) el.onEvent(currentNode, currentEvent)
-			}
-		}
-
-		return event
-	}
-
 	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		processGlobalPressEvent(rootNode, mouseX, mouseY)
+		processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.GLOBAL_PRESS, true)
 
 		val event = processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.PRESS)
 
@@ -192,6 +110,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
 	}
 
 	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+		processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.GLOBAL_RELEASE, true)
+
 		val event = processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.RELEASE)
 
 		return event.bypassSuper || super.mouseReleased(mouseX, mouseY, button)

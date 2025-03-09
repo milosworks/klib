@@ -1,0 +1,28 @@
+{
+    "states": {
+        "default": {
+            "texture": "klib:textures/gui/bedrock/button.png",
+            "texture_size": {
+                "width": 12,
+                "height": 48
+            },
+            "corners_size": {
+                "width": 2,
+                "height": 2
+            },
+            "center_size": {
+                "width": 8,
+                "height": 8
+            }
+        },
+        "hovered": {
+            "v": 12
+        },
+        "clicked": {
+            "v": 24
+        },
+        "disabled": {
+            "v": 36
+        }
+    }
+}
