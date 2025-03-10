@@ -7,10 +7,12 @@ import net.minecraft.client.gui.GuiGraphics
 import xyz.milosworks.klib.ui.extensions.ninePatchTexture
 import xyz.milosworks.klib.ui.layout.*
 import xyz.milosworks.klib.ui.modifiers.Modifier
+import xyz.milosworks.klib.ui.modifiers.debug
 import xyz.milosworks.klib.ui.modifiers.onGloballyPositioned
 import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
 import xyz.milosworks.klib.ui.util.NinePatchThemeState
+import xyz.milosworks.klib.ui.util.SimpleThemeState
 
 data class SlotData(
     val groups: MutableMap<String, SlotGroup> = mutableMapOf()
@@ -69,7 +71,7 @@ fun Slot(texture: String = "slot", modifier: Modifier = Modifier) {
         measurePolicy = { _, constraints ->
             MeasureResult(constraints.minWidth, constraints.minHeight) {}
         },
-        renderer = object : Renderer {
+        renderer = object : DefaultRenderer() {
             override fun render(
                 node: UINode,
                 x: Int,
@@ -88,22 +90,31 @@ fun Slot(texture: String = "slot", modifier: Modifier = Modifier) {
                 )
 
                 guiGraphics.blit(
-                    state.texture,
+                    (state as SimpleThemeState).texture,
                     x,
                     y,
-                    state.textureSize.width,
-                    state.textureSize.height,
+                    state.width,
+                    state.height,
                     state.u.toFloat(),
                     state.v.toFloat(),
                     state.textureSize.width,
                     state.textureSize.height,
-                    state.textureSize.width,
-                    state.textureSize.height
+                    state.uWidth,
+                    state.vHeight
                 )
+
+                super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
             }
         },
-        modifier = Modifier.sizeIn(minWidth = 18, minHeight = 18).onGloballyPositioned { pos ->
-            data.slots.add(pos)
-        }.then(modifier)
+        modifier = Modifier
+            .debug("Texture: $texture")
+            .onGloballyPositioned { data.slots.add(it) }.run {
+                if (!composableTheme.isNinepatch) with(composableTheme.states["default"] as SimpleThemeState) {
+                    sizeIn(
+                        minWidth = width,
+                        minHeight = height
+                    )
+                } else this
+            } then modifier
     )
 }

@@ -12,11 +12,11 @@ import xyz.milosworks.klib.KLib
 import xyz.milosworks.klib.ui.components.TextureStates
 import xyz.milosworks.klib.ui.layout.Size
 
-sealed class ThemeState {
-    abstract val texture: ResourceLocation
-    abstract val textureSize: Size
-    abstract val u: Int
-    abstract val v: Int
+interface ThemeState {
+    val texture: ResourceLocation
+    val textureSize: Size
+    val u: Int
+    val v: Int
 }
 
 data class NinePatchThemeState(
@@ -27,14 +27,18 @@ data class NinePatchThemeState(
     val repeat: Boolean = false,
     val cornersSize: Size,
     val centerSize: Size,
-) : ThemeState()
+) : ThemeState
 
 data class SimpleThemeState(
     override val texture: ResourceLocation,
     override val textureSize: Size,
     override val u: Int = 0,
-    override val v: Int = 0
-) : ThemeState()
+    override val v: Int = 0,
+    val width: Int,
+    val height: Int,
+    val uWidth: Int,
+    val vHeight: Int,
+) : ThemeState
 
 data class StatefulTheme(val states: Map<String, ThemeState>)
 
@@ -92,7 +96,7 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                         stateName,
                         stateObj,
                         defaultState as NinePatchThemeState
-                    ) else parseSimpleState(location, stateName, stateObj, defaultState)
+                    ) else parseSimpleState(location, stateName, stateObj, defaultState as SimpleThemeState)
                 }
 
                 val variantsObj = el["variants"]?.asJsonObject
@@ -110,7 +114,7 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                                 stateName,
                                 statesObj,
                                 defaultState as NinePatchThemeState
-                            ) else parseSimpleState(location, stateName, stateObj, defaultState)
+                            ) else parseSimpleState(location, stateName, stateObj, defaultState as SimpleThemeState)
                         }
 
                         variants[variantName] = StatefulTheme(variantStates)
@@ -118,17 +122,33 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                 }
 
                 COMPOSABLES[location] = ComposableTheme(isNinepatch, states, variants)
-                KLib.LOGGER.debug(
+                KLib.LOGGER.info(
                     "Theme \"{}\" has been registered with {} states and {} variants.{}",
                     location,
                     states.size,
                     variants.size,
-                    if (isNinepatch) " It's also registered as a nine-patch" else ""
+                    if (isNinepatch) " It is also registered as a nine-patch" else ""
                 )
             } catch (e: Exception) {
                 KLib.LOGGER.warn("Error processing theme at $location: ${e.message}", e)
             }
         }
+    }
+
+    private fun parseThemeState(
+        loc: ResourceLocation,
+        stateName: String,
+        el: JsonObject,
+        default: ThemeState? = null
+    ): ThemeState = object : ThemeState {
+        override val texture: ResourceLocation = default?.texture
+            ?: el["texture"]?.asString?.let { ResourceLocation.parse(it) }
+            ?: throw IllegalStateException("Texture path is invalid for simple state \"$stateName\" in: $loc")
+        override val textureSize: Size = el.parseSize("texture_size")
+            ?: default?.textureSize
+            ?: throw IllegalStateException("Texture size is invalid for simple state \"$stateName\" in: $loc")
+        override val u: Int = el["u"]?.asInt ?: default?.u ?: 0
+        override val v: Int = el["v"]?.asInt ?: default?.v ?: 0
     }
 
     private fun parseNinePatchState(
@@ -137,7 +157,7 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
         el: JsonObject,
         default: NinePatchThemeState? = null
     ): ThemeState {
-        val base = parseSimpleState(loc, stateName, el, default)
+        val base = parseThemeState(loc, stateName, el, default)
         val repeat = (el["repeat"]?.asBoolean ?: default?.repeat) == true
 
         val patchSize = el.parseSize("patch_size")
@@ -157,21 +177,24 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
         loc: ResourceLocation,
         stateName: String,
         el: JsonObject,
-        default: ThemeState? = null
+        default: SimpleThemeState? = null
     ): ThemeState {
-        val textureStr = el["texture"]?.asString
-        val texture = default?.texture
-            ?: textureStr?.let { ResourceLocation.parse(it) }
-            ?: throw IllegalStateException("Texture path is invalid for simple state \"$stateName\" in: $loc")
+        val base = parseThemeState(loc, stateName, el, default)
 
-        val textureSize = el.parseSize("texture_size")
-            ?: default?.textureSize
-            ?: throw IllegalStateException("Texture size is invalid for simple state \"$stateName\" in: $loc")
+        val width: Int = el["width"]?.asInt
+            ?: default?.width
+            ?: throw IllegalStateException("Width is invalid for simple state \"$stateName\" in: $loc")
+        val height: Int = el["height"]?.asInt
+            ?: default?.height
+            ?: throw IllegalStateException("Height is invalid for simple state \"$stateName\" in: $loc")
+        val uWidth: Int = el["uWidth"]?.asInt
+            ?: default?.uWidth
+            ?: width
+        val vHeight: Int = el["vHeight"]?.asInt
+            ?: default?.vHeight
+            ?: height
 
-        val u: Int = el["u"]?.asInt ?: default?.u ?: 0
-        val v: Int = el["v"]?.asInt ?: default?.v ?: 0
-
-        return SimpleThemeState(texture, textureSize, u, v)
+        return SimpleThemeState(base.texture, base.textureSize, base.u, base.v, width, height, uWidth, vHeight)
     }
 
     private fun JsonObject.parseSize(key: String): Size? {

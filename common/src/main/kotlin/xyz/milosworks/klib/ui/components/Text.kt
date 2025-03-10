@@ -19,7 +19,7 @@ import xyz.milosworks.klib.ui.nodes.UINode
  * Returns a Pair with the width and height of a text.
  */
 fun getTextSize(text: Component, scale: Float = 1f, font: Font = Minecraft.getInstance().font): Pair<Int, Int> =
-	Pair((font.width(text) * scale).toInt(), (font.lineHeight * scale).toInt())
+    Pair((font.width(text) * scale).toInt(), (font.lineHeight * scale).toInt())
 
 
 /**
@@ -40,49 +40,49 @@ fun getTextSize(text: Component, scale: Float = 1f, font: Font = Minecraft.getIn
  */
 @Composable
 fun Text(
-	text: Component,
-	fontScale: Float = 1f,
-	font: Font = Minecraft.getInstance().font,
-	color: Int = 0xFFFFFFFF.toInt(),
-	modifier: Modifier = Modifier
+    text: Component,
+    fontScale: Float = 1f,
+    font: Font = Minecraft.getInstance().font,
+    color: Int = 0xFFFFFFFF.toInt(),
+    modifier: Modifier = Modifier
 ) {
-	Layout(
-		measurePolicy = { _, constraints ->
-			MeasureResult(constraints.minWidth, constraints.minHeight) {}
-		},
-		renderer = object : DefaultRenderer() {
-			override fun render(
-				node: UINode,
-				x: Int,
-				y: Int,
-				guiGraphics: GuiGraphics,
-				mouseX: Int,
-				mouseY: Int,
-				partialTick: Float
-			) {
-				if (fontScale != 1f) {
-					guiGraphics.pose().apply {
-						pushPose()
-						scale(fontScale, fontScale, fontScale)
-						// Adjust for scaling
-						translate(x / fontScale, y / fontScale, 0f)
-					}
-					// Draw at (0,0) relative to new position
-					guiGraphics.drawString(font, text, 0, 0, color)
-					guiGraphics.pose().popPose()
-				} else {
-					// Use original position
-					guiGraphics.drawString(font, text, x, y, color)
-				}
+    Layout(
+        measurePolicy = { _, constraints ->
+            MeasureResult(constraints.minWidth, constraints.minHeight) {}
+        },
+        renderer = object : DefaultRenderer() {
+            override fun render(
+                node: UINode,
+                x: Int,
+                y: Int,
+                guiGraphics: GuiGraphics,
+                mouseX: Int,
+                mouseY: Int,
+                partialTick: Float
+            ) {
+                if (fontScale != 1f) {
+                    guiGraphics.pose().apply {
+                        pushPose()
+                        scale(fontScale, fontScale, fontScale)
+                        // Adjust for scaling
+                        translate(x / fontScale, y / fontScale, 0f)
+                    }
+                    // Draw at (0,0) relative to new position
+                    guiGraphics.drawString(font, text, 0, 0, color)
+                    guiGraphics.pose().popPose()
+                } else {
+                    // Use original position
+                    guiGraphics.drawString(font, text, x, y, color)
+                }
 
-				super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
-			}
-		},
-		modifier = getTextSize(text, fontScale, font).run {
-			Modifier.sizeIn(
-				minWidth = first,
-				minHeight = second
-			)
-		} then modifier,
-	)
+                super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
+            }
+        },
+        modifier = getTextSize(text, fontScale, font).run {
+            Modifier.sizeIn(
+                minWidth = first,
+                minHeight = second
+            )
+        } then modifier,
+    )
 }

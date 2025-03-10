@@ -8,12 +8,14 @@ import net.minecraft.world.entity.player.Inventory
 import xyz.milosworks.klib.ui.ComposeContainerScreen
 import xyz.milosworks.klib.ui.components.*
 import xyz.milosworks.klib.ui.layout.Column
+import xyz.milosworks.klib.ui.layout.Row
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.background
 import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.modifiers.input.combinedClickable
 import xyz.milosworks.klib.ui.modifiers.input.onPointerEvent
 import xyz.milosworks.klib.ui.modifiers.outline
+import xyz.milosworks.klib.ui.modifiers.padding.padding
 import xyz.milosworks.klib.ui.modifiers.size
 import xyz.milosworks.klib.ui.util.KColor
 
@@ -29,6 +31,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
     @Composable
     fun content() {
         var active: Boolean by remember { mutableStateOf(false) }
+        var checked: Boolean by remember { mutableStateOf(false) }
         var text: String by remember { mutableStateOf("") }
 
         Surface {
@@ -55,7 +58,8 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
                 }
                 Spacer(
                     Modifier.size(50, 50)
-                        .background(KColor.BLUE).outline(KColor.RED)
+                        .background(KColor.BLUE)
+                        .outline(KColor.RED)
                         .combinedClickable(
                             onLongClick = { _, _ -> println("onLongClick spacer"); false },
                             onDoubleClick = { _, _ -> println("onDoubleClick spacer"); false },
@@ -70,17 +74,25 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
                 Button(modifier = Modifier.size(20, 20)) {
                     println("button clicked"); active = (active == false)
                 }
-                Texture(
-                    ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
-                    0f,
-                    0f,
-                    64,
-                    64,
-                    64,
-                    64,
-                    Modifier.size(50)
-                        .onPointerEvent(PointerEventType.MOVE) { _, event -> println("moved texture"); event.consume() }
-                )
+                Row {
+                    Texture(
+                        ResourceLocation.parse("minecraft:textures/block/diamond_block.png"),
+                        0f,
+                        0f,
+                        64,
+                        64,
+                        64,
+                        64,
+                        Modifier.size(50)
+                            .onPointerEvent(PointerEventType.MOVE) { _, event -> println("moved texture"); event.consume() }
+                    )
+
+                    Checkbox(
+                        checked,
+                        onCheckedChange = { checked = it },
+                        modifier = Modifier.padding(horizontal = 10)
+                    )
+                }
 
                 val textSize = getTextSize(Component.literal("Clicked Button!"))
                 if (active) Text(Component.literal("Clicked Button!"))

@@ -7,7 +7,6 @@ import dev.architectury.registry.ReloadListenerRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
 import org.slf4j.Logger
-import xyz.milosworks.klib.ui.util.NPTResourceLoader
 import xyz.milosworks.klib.ui.util.ThemeResourceListener
 
 /** @suppress suppress for dokka */
@@ -29,7 +28,6 @@ object KLib {
 
     @JvmStatic
     fun initClient() {
-        ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, NPTResourceLoader())
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, ThemeResourceListener())
     }
 

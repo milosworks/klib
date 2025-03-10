@@ -14,10 +14,10 @@ import net.minecraft.util.Mth
 import net.minecraft.util.StringUtil
 import org.lwjgl.glfw.GLFW
 import xyz.milosworks.klib.ui.extensions.ninePatchTexture
+import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.MeasureResult
-import xyz.milosworks.klib.ui.layout.Renderer
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.SizeModifier
 import xyz.milosworks.klib.ui.modifiers.get
@@ -25,9 +25,11 @@ import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.modifiers.input.onCharTyped
 import xyz.milosworks.klib.ui.modifiers.input.onKeyEvent
 import xyz.milosworks.klib.ui.modifiers.input.onPointerEvent
+import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
 import xyz.milosworks.klib.ui.util.KColor
 import xyz.milosworks.klib.ui.util.NinePatchThemeState
+import xyz.milosworks.klib.ui.util.SimpleThemeState
 import kotlin.math.absoluteValue
 import kotlin.math.floor
 
@@ -62,12 +64,6 @@ fun TextField(
     val theme = LocalTheme.current
     val composableTheme = theme.getComposableTheme(texture)
 
-//	val texture: ResourceLocation by remember {
-//		mutableStateOf(
-//			modifier.firstOrNull<TextureModifier>()?.texture ?: KLib["text_field"]
-//		)
-//	}
-
     val innerWidth = sizeModifier!!.constraints.maxWidth - innerPadding
 
     var lastValue by remember { mutableStateOf(value) }
@@ -88,13 +84,11 @@ fun TextField(
     fun setCursor(pos: Int) {
         cursorPos = pos.coerceIn(0, value.length)
         scrollTo(cursorPos)
-//		println(cursorPos)
     }
 
     fun setHighlight(pos: Int) {
         highlightPos = pos.coerceIn(0, value.length)
         scrollTo(highlightPos)
-//		println(highlightPos)
     }
 
     fun setText(text: String) {
@@ -187,7 +181,7 @@ fun TextField(
         measurePolicy = { _, constraints ->
             MeasureResult(constraints.minWidth, constraints.minHeight) {}
         },
-        renderer = object : Renderer {
+        renderer = object : DefaultRenderer() {
             override fun render(
                 node: UINode,
                 x: Int,
@@ -221,17 +215,17 @@ fun TextField(
                     state as NinePatchThemeState,
                 ) else {
                     guiGraphics.blit(
-                        state.texture,
+                        (state as SimpleThemeState).texture,
                         x,
                         y,
-                        state.textureSize.width,
-                        state.textureSize.height,
+                        state.width,
+                        state.height,
                         state.u.toFloat(),
                         state.v.toFloat(),
+                        state.uWidth,
+                        state.vHeight,
                         state.textureSize.width,
                         state.textureSize.height,
-                        state.textureSize.width,
-                        state.textureSize.height
                     )
                 }
 
@@ -245,8 +239,6 @@ fun TextField(
                 val startY = y + (node.height - innerPadding) / 2
                 var textDrawX = startX
                 val clampedHighlightPos = Mth.clamp(highlightPos - displayPos, 0, displayedText.length)
-//				(highlightPos - displayPos).coerceIn(0, displayedText.length)
-//				println("highlight: $highlightPos, displayPos: $displayPos, displayedText: ${displayedText.length}")
 
                 if (displayedText.isNotEmpty()) {
                     val textBeforeCursor =
@@ -321,6 +313,8 @@ fun TextField(
 
                     guiGraphics.fill(RenderType.guiTextHighlight(), left, top, right, bottom, KColor.BLUE.argb)
                 }
+
+                super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
             }
         },
         modifier = Modifier.onKeyEvent { node, event ->
@@ -414,6 +408,13 @@ fun TextField(
             focused = false
 
             event.consume()
+        }.apply {
+            if (!composableTheme.isNinepatch) with(composableTheme.states["default"]!!) {
+                sizeIn(
+                    minWidth = textureSize.width,
+                    minHeight = textureSize.height
+                )
+            }
         } then modifier
     )
 }

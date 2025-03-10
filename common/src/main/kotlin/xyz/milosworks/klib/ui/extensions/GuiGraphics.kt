@@ -3,7 +3,6 @@ package xyz.milosworks.klib.ui.extensions
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
-import xyz.milosworks.klib.ui.util.NinePatchTexture
 import xyz.milosworks.klib.ui.util.NinePatchThemeState
 
 /**

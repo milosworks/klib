@@ -6,12 +6,14 @@ import net.minecraft.client.gui.GuiGraphics
 import xyz.milosworks.klib.ui.extensions.ninePatchTexture
 import xyz.milosworks.klib.ui.layout.Alignment
 import xyz.milosworks.klib.ui.layout.BoxMeasurePolicy
+import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
-import xyz.milosworks.klib.ui.layout.Renderer
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.debug
+import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
 import xyz.milosworks.klib.ui.util.NinePatchThemeState
+import xyz.milosworks.klib.ui.util.SimpleThemeState
 
 @Composable
 fun Surface(
@@ -27,7 +29,7 @@ fun Surface(
 
     Layout(
         measurePolicy,
-        object : Renderer {
+        object : DefaultRenderer() {
             override fun render(
                 node: UINode,
                 x: Int,
@@ -46,21 +48,30 @@ fun Surface(
                 )
 
                 guiGraphics.blit(
-                    state.texture,
+                    (state as SimpleThemeState).texture,
                     x,
                     y,
-                    state.textureSize.width,
-                    state.textureSize.height,
+                    state.width,
+                    state.height,
                     state.u.toFloat(),
                     state.v.toFloat(),
+                    state.uWidth,
+                    state.vHeight,
                     state.textureSize.width,
                     state.textureSize.height,
-                    state.textureSize.width,
-                    state.textureSize.height
                 )
+
+                super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
             }
         },
-        Modifier.debug(state.texture.toString()) then modifier,
+        Modifier.debug(state.texture.toString()).apply {
+            if (!composableTheme.isNinepatch) with(composableTheme.states["default"]!!) {
+                sizeIn(
+                    minWidth = textureSize.width,
+                    minHeight = textureSize.height
+                )
+            }
+        } then modifier,
         content
     )
 }

@@ -14,26 +14,25 @@ import net.minecraft.network.chat.Component
  * @param comps A list of components that will be appended as debug information.
  */
 data class DebugModifier(
-	val strs: List<String> = emptyList(),
-	val comps: List<Component> = emptyList()
+    val strs: List<String> = emptyList(),
+    val comps: List<Component> = emptyList()
 ) : Modifier.Element<DebugModifier> {
-	override fun mergeWith(other: DebugModifier): DebugModifier =
-		DebugModifier(
-			strs = this.strs + other.strs,
-			comps = this.comps + other.comps
-		)
+    override fun mergeWith(other: DebugModifier): DebugModifier =
+        DebugModifier(
+            strs = this.strs + other.strs,
+            comps = this.comps + other.comps
+        )
 
-	override fun toString(): String = strs.joinToString(", ").ifEmpty { super.toString() }
+    override fun toString(): String = strs.joinToString(", ").ifEmpty { super.toString() }
 
-	override fun toComponent(): Component = Component.empty().apply {
-		strs.map { Component.literal(it) }.forEach { append(it) }
-		comps.forEach { append(it) }
-	}.takeIf { it != Component.empty() } ?: Component.literal(super.toString())
+    override fun toComponent(): Component = Component.empty().apply {
+        strs.map { Component.literal(it) }.forEach { append(it) }
+        comps.forEach { append(it) }
+    }.takeIf { it != Component.empty() } ?: Component.literal(super.toString())
 
-	fun toComponents(): List<Component> = (strs.map { Component.literal(it) } + comps).ifEmpty {
-		listOf(Component.literal(super.toString()))
-	}
-
+    fun toComponents(): List<Component> = (strs.map { Component.literal(it) } + comps).ifEmpty {
+        listOf(Component.literal(super.toString()))
+    }
 }
 
 /**

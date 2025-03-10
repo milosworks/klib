@@ -3,26 +3,33 @@ package xyz.milosworks.klib.ui.components
 import androidx.compose.runtime.*
 import net.minecraft.client.gui.GuiGraphics
 import xyz.milosworks.klib.ui.extensions.ninePatchTexture
+import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.MeasureResult
-import xyz.milosworks.klib.ui.layout.Renderer
 import xyz.milosworks.klib.ui.modifiers.Modifier
+import xyz.milosworks.klib.ui.modifiers.debug
 import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.modifiers.input.onPointerEvent
+import xyz.milosworks.klib.ui.modifiers.sizeIn
 import xyz.milosworks.klib.ui.nodes.UINode
 import xyz.milosworks.klib.ui.util.NinePatchThemeState
+import xyz.milosworks.klib.ui.util.SimpleThemeState
 
 @Composable
-fun Checkbox(enabled: Boolean = false, texture: String = "checkbox", modifier: Modifier = Modifier) {
+fun Checkbox(
+    checked: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit,
+    texture: String = "checkbox",
+    modifier: Modifier = Modifier
+) {
     val theme = LocalTheme.current
     val composableTheme = theme.getComposableTheme(texture)
 
-    var active by remember { mutableStateOf(enabled) }
     var hovered by remember { mutableStateOf(false) }
 
     Layout(
         measurePolicy = { _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
-        renderer = object : Renderer {
+        renderer = object : DefaultRenderer() {
             override fun render(
                 node: UINode,
                 x: Int,
@@ -34,9 +41,9 @@ fun Checkbox(enabled: Boolean = false, texture: String = "checkbox", modifier: M
             ) {
                 val state = composableTheme.getState(
                     when {
-                        !enabled -> TextureStates.DISABLED
-                        hovered && active -> TextureStates.CLICKED_AND_HOVERED
+                        checked && hovered -> TextureStates.CLICKED_AND_HOVERED
                         hovered -> TextureStates.HOVERED
+                        checked -> TextureStates.CLICKED
                         else -> TextureStates.DEFAULT
                     },
                     theme.mode
@@ -51,25 +58,38 @@ fun Checkbox(enabled: Boolean = false, texture: String = "checkbox", modifier: M
                 )
 
                 guiGraphics.blit(
-                    state.texture,
+                    (state as SimpleThemeState).texture,
                     x,
                     y,
-                    state.textureSize.width,
-                    state.textureSize.height,
+                    state.width,
+                    state.height,
                     state.u.toFloat(),
                     state.v.toFloat(),
+                    state.uWidth,
+                    state.vHeight,
                     state.textureSize.width,
                     state.textureSize.height,
-                    state.textureSize.width,
-                    state.textureSize.height
                 )
+
+                super.render(node, x, y, guiGraphics, mouseX, mouseY, partialTick)
             }
         },
-        // TODO: Add a modifier for size if texture is not ninepatch for all components like Slot
         modifier = Modifier
+            .debug("Hovered: $hovered", "Texture: $texture")
             .onPointerEvent(PointerEventType.ENTER) { _, e -> hovered = true; e.consume() }
             .onPointerEvent(PointerEventType.EXIT) { _, e -> hovered = false; e.consume() }
-            .onPointerEvent(PointerEventType.PRESS) { _, e -> active = (!active); e.consume() }
+            .onPointerEvent(PointerEventType.PRESS) { _, e -> onCheckedChange(!checked); e.consume() }
+            .run {
+                if (!composableTheme.isNinepatch) with(composableTheme.states["default"] as SimpleThemeState) {
+                    sizeIn(
+                        minWidth = width,
+                        minHeight = height
+                    )
+                } else this
+            }
+            .also {
+//                println()
+            }
                 then modifier,
     )
 }
