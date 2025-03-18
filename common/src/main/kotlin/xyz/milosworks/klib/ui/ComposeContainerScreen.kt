@@ -1,9 +1,6 @@
 package xyz.milosworks.klib.ui
 
-import androidx.compose.runtime.BroadcastFrameClock
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Composition
-import androidx.compose.runtime.Recomposer
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.coroutines.*
@@ -24,6 +21,9 @@ import xyz.milosworks.klib.ui.modifiers.fillMaxSize
 import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.nodes.UINodeApplier
 import kotlin.coroutines.CoroutineContext
+
+val LocalContainer: ProvidableCompositionLocal<ComposeContainerScreen<*>> =
+    compositionLocalOf { throw IllegalStateException("Container has not been provided") }
 
 abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     menu: T, playerInventory: Inventory, title: Component
@@ -60,11 +60,13 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
         }
 
         setContent {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                content()
+            CompositionLocalProvider(LocalContainer provides this) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    content()
+                }
             }
         }
     }

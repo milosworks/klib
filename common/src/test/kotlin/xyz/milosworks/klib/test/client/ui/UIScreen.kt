@@ -90,7 +90,7 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
                     Checkbox(
                         checked,
                         onCheckedChange = { checked = it },
-                        modifier = Modifier.padding(horizontal = 10)
+                        modifier = Modifier.padding(start = 5)
                     )
                 }
 

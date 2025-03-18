@@ -69,302 +69,307 @@ internal typealias DecodeSerializer<T> = (T, Codec<Any>) -> Any
  * ```
  */
 object SerializationManager {
-	private var sharedModule: SerializersModule = SerializersModule {
-		include(MinecraftSerializersModule)
-		include(BuiltInSerializersModule)
-	}
+    private var sharedModule: SerializersModule = SerializersModule {
+        include(MinecraftSerializersModule)
+        include(BuiltInSerializersModule)
+    }
 
-	private fun createCbor() = Cbor { serializersModule = sharedModule }
-	private fun createJson() = Json { serializersModule = sharedModule }
-	private fun createNbt() = Nbt {
-		variant = NbtVariant.Java
-		compression = NbtCompression.None
-		serializersModule = sharedModule
-	}
+    private fun createCbor() = Cbor { serializersModule = sharedModule }
+    private fun createJson() = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+        serializersModule = sharedModule
+    }
 
-	var cbor: Cbor = createCbor()
-		private set
-	var json: Json = createJson()
-		private set
-	var nbt: Nbt = createNbt()
-		private set
+    private fun createNbt() = Nbt {
+        variant = NbtVariant.Java
+        compression = NbtCompression.None
+        serializersModule = sharedModule
+    }
 
-	private val ops: MutableMap<DynamicOps<*>, DynamicOpRegistryBuilder.Operation<Any>> =
-		mutableMapOf()
-	internal val serializers: MutableList<SerializerRegistryBuilder.Registry> = mutableListOf()
+    var cbor: Cbor = createCbor()
+        private set
+    var json: Json = createJson()
+        private set
+    var nbt: Nbt = createNbt()
+        private set
 
-	private fun rebuild() {
-		cbor = createCbor()
-		json = createJson()
-		nbt = createNbt()
-	}
+    private val ops: MutableMap<DynamicOps<*>, DynamicOpRegistryBuilder.Operation<Any>> =
+        mutableMapOf()
+    internal val serializers: MutableList<SerializerRegistryBuilder.Registry> = mutableListOf()
 
-	/**
-	 * Overwrites existing serializers with the provided module.
-	 *
-	 * @param module The new `SerializersModule` to use.
-	 */
-	infix fun overwriteWith(module: SerializersModule) {
-		sharedModule = sharedModule overwriteWith module
-		rebuild()
-	}
+    private fun rebuild() {
+        cbor = createCbor()
+        json = createJson()
+        nbt = createNbt()
+    }
 
-	/**
-	 * Retrieves the ops registry for a specific [DynamicOps] instance.
-	 *
-	 * @param op The [DynamicOps] instance.
-	 * @return A registry that can encode/decode the `DynamicOp`, or `null` if not found.
-	 */
-	operator fun get(op: DynamicOps<*>) = ops[op]
+    /**
+     * Overwrites existing serializers with the provided module.
+     *
+     * @param module The new `SerializersModule` to use.
+     */
+    infix fun overwriteWith(module: SerializersModule) {
+        sharedModule = sharedModule overwriteWith module
+        rebuild()
+    }
 
-	/**
-	 * Retrieves the serializer registry for a specific [Encoder].
-	 *
-	 * @param encoder The [Encoder] interface.
-	 * @return A registry that contains the [Encoder], or `null` if not found.
-	 */
-	operator fun get(encoder: Encoder) = serializers.find { it.operation.encoder.isInstance(encoder) }
+    /**
+     * Retrieves the ops registry for a specific [DynamicOps] instance.
+     *
+     * @param op The [DynamicOps] instance.
+     * @return A registry that can encode/decode the `DynamicOp`, or `null` if not found.
+     */
+    operator fun get(op: DynamicOps<*>) = ops[op]
 
-	/**
-	 * Retrieves the serializer registry for a specific [Decoder].
-	 *
-	 * @param decoder The [Decoder] interface.
-	 * @return A registry that contains the [Decoder], or `null` if not found.
-	 */
-	operator fun get(decoder: Decoder) = serializers.find { it.operation.decoder.isInstance(decoder) }
+    /**
+     * Retrieves the serializer registry for a specific [Encoder].
+     *
+     * @param encoder The [Encoder] interface.
+     * @return A registry that contains the [Encoder], or `null` if not found.
+     */
+    operator fun get(encoder: Encoder) = serializers.find { it.operation.encoder.isInstance(encoder) }
 
-	/**
-	 * Configures the [SerializationManager]
-	 */
-	operator fun invoke(block: SerializationManagerBuilder.() -> Unit) {
-		SerializationManagerBuilder().block()
-		rebuild()
-	}
+    /**
+     * Retrieves the serializer registry for a specific [Decoder].
+     *
+     * @param decoder The [Decoder] interface.
+     * @return A registry that contains the [Decoder], or `null` if not found.
+     */
+    operator fun get(decoder: Decoder) = serializers.find { it.operation.decoder.isInstance(decoder) }
 
-	class SerializationManagerBuilder {
-		/**
-		 * Uses the [SerializersModuleBuilder] to configure the shared module between all serializer instances.
-		 *
-		 * @param block A builder function for creating a [SerializersModule]
-		 */
-		fun module(block: SerializersModuleBuilder.() -> Unit) {
-			sharedModule = sharedModule.overwriteWith(SerializersModule { block() })
-		}
+    /**
+     * Configures the [SerializationManager]
+     */
+    operator fun invoke(block: SerializationManagerBuilder.() -> Unit) {
+        SerializationManagerBuilder().block()
+        rebuild()
+    }
 
-		/**
-		 * Registers a new [DynamicOps] instance with its associated encode and decode functions.
-		 * This is used when you convert a [KSerializer] into a [Codec] via [SerializerCodec].
-		 *
-		 * ### Usage
-		 * ```kotlin
-		 * registerDynamicOp(JsonOps.INSTANCE) {
-		 *  encode { input, strategy -> json.encodeToJsonElement(strategy, input).toGson }
-		 *  decode { input, strategy ->
-		 *   require(input is GsonElement) { "Expected input of type JsonElement but received ${input.javaClass.simpleName}." }
-		 *
-		 *   json.decodeFromJsonElement(strategy, input.toKson)
-		 *  }
-		 * }
-		 * ```
-		 *
-		 * @param op The `DynamicOps` instance.
-		 * @param block The builder function of the `DynamicOpRegistry`
-		 */
-		@Suppress("UNCHECKED_CAST")
-		fun <T : Any> registerDynamicOp(
-			op: DynamicOps<T>,
-			block: DynamicOpRegistryBuilder<T>.() -> Unit
-		) {
-			val builder = DynamicOpRegistryBuilder<T>().apply(block)
+    class SerializationManagerBuilder {
+        /**
+         * Uses the [SerializersModuleBuilder] to configure the shared module between all serializer instances.
+         *
+         * @param block A builder function for creating a [SerializersModule]
+         */
+        fun module(block: SerializersModuleBuilder.() -> Unit) {
+            sharedModule = sharedModule.overwriteWith(SerializersModule { block() })
+        }
 
-			ops[op] = builder.build() as DynamicOpRegistryBuilder.Operation<Any>
-		}
+        /**
+         * Registers a new [DynamicOps] instance with its associated encode and decode functions.
+         * This is used when you convert a [KSerializer] into a [Codec] via [SerializerCodec].
+         *
+         * ### Usage
+         * ```kotlin
+         * registerDynamicOp(JsonOps.INSTANCE) {
+         *  encode { input, strategy -> json.encodeToJsonElement(strategy, input).toGson }
+         *  decode { input, strategy ->
+         *   require(input is GsonElement) { "Expected input of type JsonElement but received ${input.javaClass.simpleName}." }
+         *
+         *   json.decodeFromJsonElement(strategy, input.toKson)
+         *  }
+         * }
+         * ```
+         *
+         * @param op The `DynamicOps` instance.
+         * @param block The builder function of the `DynamicOpRegistry`
+         */
+        @Suppress("UNCHECKED_CAST")
+        fun <T : Any> registerDynamicOp(
+            op: DynamicOps<T>,
+            block: DynamicOpRegistryBuilder<T>.() -> Unit
+        ) {
+            val builder = DynamicOpRegistryBuilder<T>().apply(block)
 
-		/**
-		 * Registers a new `Serializer` with its associated encode and decode functions.
-		 * This is used when you convert a [Codec] into [KSerializer].
-		 *
-		 * **Note:** Because a limitation of the [Codec] structure you need an "intermediary" such as [JsonElement] or [NbtTag] for example.
-		 *
-		 * ### Usage
-		 * ```kotlin
-		 * registerSerializer(JsonElement.serializer().descriptor) {
-		 *  encode(JsonEncoder::class) { encoder, codec, input ->
-		 *   encoder.encodeJsonElement(codec.encodeStart(KOps.Json, input).orThrow)
-		 *  }
-		 *
-		 *  decode(JsonDecoder::class) { decoder, codec ->
-		 *   codec.parse(KOps.Json, decoder.decodeJsonElement()).orThrow
-		 *  }
-		 * }
-		 * ```
-		 *
-		 * @param descriptor The descriptor of the serializer
-		 * @param name An optional name for the element in the [CodecSerializer] descriptor
-		 * @param block The builder function of the `SerializerRegistry`
-		 */
-		fun registerSerializer(
-			descriptor: SerialDescriptor,
-			name: String? = null,
-			block: SerializerRegistryBuilder.() -> Unit
-		) {
-			val builder = SerializerRegistryBuilder().apply(block)
+            ops[op] = builder.build() as DynamicOpRegistryBuilder.Operation<Any>
+        }
 
-			serializers.add(
-				SerializerRegistryBuilder.Registry(
-					descriptor,
-					name,
-					builder.build()
-				)
-			)
-		}
+        /**
+         * Registers a new `Serializer` with its associated encode and decode functions.
+         * This is used when you convert a [Codec] into [KSerializer].
+         *
+         * **Note:** Because a limitation of the [Codec] structure you need an "intermediary" such as [JsonElement] or [NbtTag] for example.
+         *
+         * ### Usage
+         * ```kotlin
+         * registerSerializer(JsonElement.serializer().descriptor) {
+         *  encode(JsonEncoder::class) { encoder, codec, input ->
+         *   encoder.encodeJsonElement(codec.encodeStart(KOps.Json, input).orThrow)
+         *  }
+         *
+         *  decode(JsonDecoder::class) { decoder, codec ->
+         *   codec.parse(KOps.Json, decoder.decodeJsonElement()).orThrow
+         *  }
+         * }
+         * ```
+         *
+         * @param descriptor The descriptor of the serializer
+         * @param name An optional name for the element in the [CodecSerializer] descriptor
+         * @param block The builder function of the `SerializerRegistry`
+         */
+        fun registerSerializer(
+            descriptor: SerialDescriptor,
+            name: String? = null,
+            block: SerializerRegistryBuilder.() -> Unit
+        ) {
+            val builder = SerializerRegistryBuilder().apply(block)
 
-		class DynamicOpRegistryBuilder<T> {
-			data class Operation<T>(
-				val encode: EncodeDynamicOp<T>,
-				val decode: DecodeDynamicOp<T>
-			)
+            serializers.add(
+                SerializerRegistryBuilder.Registry(
+                    descriptor,
+                    name,
+                    builder.build()
+                )
+            )
+        }
 
-			private var encode: EncodeDynamicOp<T>? = null
-			private var decode: DecodeDynamicOp<T>? = null
+        class DynamicOpRegistryBuilder<T> {
+            data class Operation<T>(
+                val encode: EncodeDynamicOp<T>,
+                val decode: DecodeDynamicOp<T>
+            )
 
-			/**
-			 * Defines the encoder for this `DynamicOp`
-			 *
-			 * @param block The function used for encoding data
-			 */
-			fun encode(block: EncodeDynamicOp<T>) {
-				encode = block
-			}
+            private var encode: EncodeDynamicOp<T>? = null
+            private var decode: DecodeDynamicOp<T>? = null
 
-			/**
-			 * Defines the decoder for this `DynamicOp`
-			 *
-			 * @param block The function used for decoding data
-			 */
-			fun decode(block: DecodeDynamicOp<T>) {
-				decode = block
-			}
+            /**
+             * Defines the encoder for this `DynamicOp`
+             *
+             * @param block The function used for encoding data
+             */
+            fun encode(block: EncodeDynamicOp<T>) {
+                encode = block
+            }
 
-			internal fun build(): Operation<T> {
-				requireNotNull(encode) { "Encode function must be provided before building the operation. Call `encode { ... }` to set it." }
-				requireNotNull(decode) { "Decode function must be provided before building the operation. Call `decode { ... }` to set it." }
+            /**
+             * Defines the decoder for this `DynamicOp`
+             *
+             * @param block The function used for decoding data
+             */
+            fun decode(block: DecodeDynamicOp<T>) {
+                decode = block
+            }
 
-				return Operation<T>(encode!!, decode!!)
-			}
-		}
+            internal fun build(): Operation<T> {
+                requireNotNull(encode) { "Encode function must be provided before building the operation. Call `encode { ... }` to set it." }
+                requireNotNull(decode) { "Decode function must be provided before building the operation. Call `decode { ... }` to set it." }
 
-		class SerializerRegistryBuilder {
-			data class Registry(
-				val descriptor: SerialDescriptor,
-				val name: String? = null,
-				val operation: Operation
-			)
+                return Operation<T>(encode!!, decode!!)
+            }
+        }
 
-			data class Operation(
-				val encoder: KClass<out Encoder>,
-				val decoder: KClass<out Decoder>,
-				val encode: EncodeSerializer<Any>,
-				val decode: DecodeSerializer<Any>
-			)
+        class SerializerRegistryBuilder {
+            data class Registry(
+                val descriptor: SerialDescriptor,
+                val name: String? = null,
+                val operation: Operation
+            )
 
-			private var encoder: KClass<out Encoder>? = null
-			private var encode: EncodeSerializer<Any>? = null
+            data class Operation(
+                val encoder: KClass<out Encoder>,
+                val decoder: KClass<out Decoder>,
+                val encode: EncodeSerializer<Any>,
+                val decode: DecodeSerializer<Any>
+            )
 
-			private var decoder: KClass<out Decoder>? = null
-			private var decode: DecodeSerializer<Any>? = null
+            private var encoder: KClass<out Encoder>? = null
+            private var encode: EncodeSerializer<Any>? = null
 
-			/**
-			 * Defines the encoder for this `Serializer`
-			 *
-			 * @param block The function used for encoding data
-			 */
-			@Suppress("UNCHECKED_CAST")
-			fun <T : Encoder> encode(enc: KClass<T>, block: EncodeSerializer<T>) {
-				encoder = enc
-				encode = block as EncodeSerializer<Any>
-			}
+            private var decoder: KClass<out Decoder>? = null
+            private var decode: DecodeSerializer<Any>? = null
 
-			/**
-			 * Defines the decoder for this `Serializer`
-			 *
-			 * @param block The function used for decoding data
-			 */
-			@Suppress("UNCHECKED_CAST")
-			fun <T : Decoder> decode(dec: KClass<T>, block: DecodeSerializer<T>) {
-				decoder = dec
-				decode = block as DecodeSerializer<Any>
-			}
+            /**
+             * Defines the encoder for this `Serializer`
+             *
+             * @param block The function used for encoding data
+             */
+            @Suppress("UNCHECKED_CAST")
+            fun <T : Encoder> encode(enc: KClass<T>, block: EncodeSerializer<T>) {
+                encoder = enc
+                encode = block as EncodeSerializer<Any>
+            }
 
-			internal fun build(): Operation {
-				requireNotNull(encoder) { "Encoder must be provided before building the operation. Call `encode(...) { ... }` to set it." }
-				requireNotNull(encode) { "Encode function must be provided before building the operation. Call `encode(...) { ... }` to set it." }
-				requireNotNull(decoder) { "Decoder must be provided before building the operation. Call `decode(...) { ... }` to set it." }
-				requireNotNull(decode) { "Decode function must be provided before building the operation. Call `decode(...) { ... }` to set it." }
+            /**
+             * Defines the decoder for this `Serializer`
+             *
+             * @param block The function used for decoding data
+             */
+            @Suppress("UNCHECKED_CAST")
+            fun <T : Decoder> decode(dec: KClass<T>, block: DecodeSerializer<T>) {
+                decoder = dec
+                decode = block as DecodeSerializer<Any>
+            }
 
-				return Operation(
-					encoder!!,
-					decoder!!,
-					encode!!,
-					decode!!
-				)
-			}
-		}
-	}
+            internal fun build(): Operation {
+                requireNotNull(encoder) { "Encoder must be provided before building the operation. Call `encode(...) { ... }` to set it." }
+                requireNotNull(encode) { "Encode function must be provided before building the operation. Call `encode(...) { ... }` to set it." }
+                requireNotNull(decoder) { "Decoder must be provided before building the operation. Call `decode(...) { ... }` to set it." }
+                requireNotNull(decode) { "Decode function must be provided before building the operation. Call `decode(...) { ... }` to set it." }
 
-	init {
-		SerializationManager {
-			registerDynamicOp(JsonOps.INSTANCE) {
-				encode { input, strategy -> json.encodeToJsonElement(strategy, input).toGson }
-				decode { input, strategy ->
-					require(input is GsonElement) { "Expected input of type JsonElement but received ${input.javaClass.simpleName}." }
+                return Operation(
+                    encoder!!,
+                    decoder!!,
+                    encode!!,
+                    decode!!
+                )
+            }
+        }
+    }
 
-					json.decodeFromJsonElement(strategy, input.toKson)
-				}
-			}
+    init {
+        SerializationManager {
+            registerDynamicOp(JsonOps.INSTANCE) {
+                encode { input, strategy -> json.encodeToJsonElement(strategy, input).toGson }
+                decode { input, strategy ->
+                    require(input is GsonElement) { "Expected input of type JsonElement but received ${input.javaClass.simpleName}." }
 
-			registerDynamicOp(NbtOps.INSTANCE) {
-				encode { input, strategy -> nbt.encodeToNbtTag(strategy, input).toMinecraftTag }
-				decode { input, strategy ->
-					require(input is Tag) { "Expected input of type Tag but received ${input.javaClass.simpleName}." }
+                    json.decodeFromJsonElement(strategy, input.toKson)
+                }
+            }
 
-					nbt.decodeFromNbtTag(
-						strategy,
-						input.toKNbt ?: throw IllegalStateException("Failed to convert a Minecraft Tag into a KNbtTag.")
-					)
-				}
-			}
+            registerDynamicOp(NbtOps.INSTANCE) {
+                encode { input, strategy -> nbt.encodeToNbtTag(strategy, input).toMinecraftTag }
+                decode { input, strategy ->
+                    require(input is Tag) { "Expected input of type Tag but received ${input.javaClass.simpleName}." }
 
-			registerSerializer(JsonElement.serializer().descriptor) {
-				encode(JsonEncoder::class) { encoder, codec, input ->
-					encoder.encodeJsonElement(codec.encodeStart(KOps.Json, input).orThrow)
-				}
+                    nbt.decodeFromNbtTag(
+                        strategy,
+                        input.toKNbt ?: throw IllegalStateException("Failed to convert a Minecraft Tag into a KNbtTag.")
+                    )
+                }
+            }
 
-				decode(JsonDecoder::class) { decoder, codec ->
-					codec.parse(KOps.Json, decoder.decodeJsonElement()).orThrow
-				}
-			}
+            registerSerializer(JsonElement.serializer().descriptor) {
+                encode(JsonEncoder::class) { encoder, codec, input ->
+                    encoder.encodeJsonElement(codec.encodeStart(KOps.Json, input).orThrow)
+                }
 
-			registerSerializer(NbtTag.serializer().descriptor) {
-				encode(NbtEncoder::class) { encoder, codec, input ->
-					encoder.encodeNbtTag(codec.encodeStart(KOps.Nbt, input).orThrow)
-				}
+                decode(JsonDecoder::class) { decoder, codec ->
+                    codec.parse(KOps.Json, decoder.decodeJsonElement()).orThrow
+                }
+            }
 
-				decode(NbtDecoder::class) { decoder, codec ->
-					codec.parse(KOps.Nbt, decoder.decodeNbtTag()).orThrow
-				}
-			}
+            registerSerializer(NbtTag.serializer().descriptor) {
+                encode(NbtEncoder::class) { encoder, codec, input ->
+                    encoder.encodeNbtTag(codec.encodeStart(KOps.Nbt, input).orThrow)
+                }
 
-			registerSerializer(String.serializer().descriptor, name = "CborElement") {
-				encode(CborEncoder::class) { encoder, codec, input ->
-					encoder.encodeString(codec.encodeStart(JsonOps.INSTANCE, input).orThrow.toString())
-				}
+                decode(NbtDecoder::class) { decoder, codec ->
+                    codec.parse(KOps.Nbt, decoder.decodeNbtTag()).orThrow
+                }
+            }
 
-				decode(CborDecoder::class) { decoder, codec ->
-					val str = decoder.decodeString()
-					codec.parse(JsonOps.INSTANCE, JsonParser.parseString(str)).orThrow
-				}
-			}
-		}
-	}
+            registerSerializer(String.serializer().descriptor, name = "CborElement") {
+                encode(CborEncoder::class) { encoder, codec, input ->
+                    encoder.encodeString(codec.encodeStart(JsonOps.INSTANCE, input).orThrow.toString())
+                }
+
+                decode(CborDecoder::class) { decoder, codec ->
+                    val str = decoder.decodeString()
+                    codec.parse(JsonOps.INSTANCE, JsonParser.parseString(str)).orThrow
+                }
+            }
+        }
+    }
 }

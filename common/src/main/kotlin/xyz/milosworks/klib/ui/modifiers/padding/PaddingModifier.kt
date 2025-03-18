@@ -9,6 +9,8 @@ import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.offset
 import kotlin.math.max
 
+// TODO: Padding modifier is having issues with MeasurePolicy
+// https://discord.com/channels/@me/1292974938671550534/1348835547661078581
 data class PaddingModifier(
     val padding: PaddingValues
 ) : Modifier.Element<PaddingModifier>, LayoutChangingModifier {

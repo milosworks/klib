@@ -24,7 +24,7 @@ import com.google.gson.JsonElement as GsonElement
  * Gets data from a [RegistryFriendlyByteBuf] using the provided [KSerializer]
  */
 fun <T : Any> RegistryFriendlyByteBuf.read(serializer: KSerializer<T>): T =
-	SerializationManager.cbor.decodeFromByteArray(serializer, readByteArray())
+    SerializationManager.cbor.decodeFromByteArray(serializer, readByteArray())
 
 /**
  * Writes data into a [RegistryFriendlyByteBuf] using the [KSerializer] using the class of the data
@@ -36,7 +36,7 @@ fun <T : Any> RegistryFriendlyByteBuf.write(data: T) = write(data::class.seriali
  * Writes data into a [RegistryFriendlyByteBuf] using a [KSerializer]
  */
 fun <T : Any> RegistryFriendlyByteBuf.write(serializer: KSerializer<T>, data: T) =
-	writeBytes(SerializationManager.cbor.encodeToByteArray(serializer, data))
+    writeBytes(SerializationManager.cbor.encodeToByteArray(serializer, data))
 
 /**
  * Converts a [Codec] into a [KSerializer].
@@ -45,7 +45,7 @@ fun <T : Any> RegistryFriendlyByteBuf.write(serializer: KSerializer<T>, data: T)
  * Trying to use unregistered [DynamicOps] implementations will result in an [UnsupportedOperationException].
  */
 val <T : Any> Codec<T>.kSerializer: KSerializer<T>
-	get() = CodecSerializer(this)
+    get() = CodecSerializer(this)
 
 /**
  * Converts a [KSerializer] into a [Codec].
@@ -83,16 +83,16 @@ val <T : Any> Codec<T>.kSerializer: KSerializer<T>
  * @throws UnsupportedOperationException If the provided `DynamicOps` type is not supported.
  */
 val <T : Any> KSerializer<T>.codec: Codec<T>
-	get() = SerializerCodec(this)
+    get() = SerializerCodec(this)
 
 /**
  * Converts any [KSerializer] into a [StreamCodec] using Cbor
  */
 val <T : Any> KSerializer<T>.streamCodec: StreamCodec<RegistryFriendlyByteBuf, T>
-	get() = StreamCodec.of<RegistryFriendlyByteBuf, T>(
-		{ buffer, value -> buffer.writeByteArray(SerializationManager.cbor.encodeToByteArray(this, value)) },
-		{ buffer -> SerializationManager.cbor.decodeFromByteArray(this, buffer.readByteArray()) }
-	)
+    get() = StreamCodec.of<RegistryFriendlyByteBuf, T>(
+        { buffer, value -> buffer.writeByteArray(SerializationManager.cbor.encodeToByteArray(this, value)) },
+        { buffer -> SerializationManager.cbor.decodeFromByteArray(this, buffer.readByteArray()) }
+    )
 
 /**
  * Returns serial descriptor that delegates all the calls to descriptor returned by [deferred] block.
@@ -101,20 +101,20 @@ val <T : Any> KSerializer<T>.streamCodec: StreamCodec<RegistryFriendlyByteBuf, T
 @OptIn(SealedSerializationApi::class)
 fun defer(deferred: () -> SerialDescriptor): SerialDescriptor = object : SerialDescriptor {
 
-	private val original: SerialDescriptor by lazy(deferred)
+    private val original: SerialDescriptor by lazy(deferred)
 
-	override val serialName: String
-		get() = original.serialName
-	override val kind: SerialKind
-		get() = original.kind
-	override val elementsCount: Int
-		get() = original.elementsCount
+    override val serialName: String
+        get() = original.serialName
+    override val kind: SerialKind
+        get() = original.kind
+    override val elementsCount: Int
+        get() = original.elementsCount
 
-	override fun getElementName(index: Int): String = original.getElementName(index)
-	override fun getElementIndex(name: String): Int = original.getElementIndex(name)
-	override fun getElementAnnotations(index: Int): List<Annotation> = original.getElementAnnotations(index)
-	override fun getElementDescriptor(index: Int): SerialDescriptor = original.getElementDescriptor(index)
-	override fun isElementOptional(index: Int): Boolean = original.isElementOptional(index)
+    override fun getElementName(index: Int): String = original.getElementName(index)
+    override fun getElementIndex(name: String): Int = original.getElementIndex(name)
+    override fun getElementAnnotations(index: Int): List<Annotation> = original.getElementAnnotations(index)
+    override fun getElementDescriptor(index: Int): SerialDescriptor = original.getElementDescriptor(index)
+    override fun isElementOptional(index: Int): Boolean = original.isElementOptional(index)
 }
 
 /**
@@ -123,38 +123,38 @@ fun defer(deferred: () -> SerialDescriptor): SerialDescriptor = object : SerialD
  * **Note:** It is HIGHLY recommended to just use the extension function [KSerializer.codec] instead of manually using this class.
  */
 open class SerializerCodec<T : Any>(private val serializer: KSerializer<T>) : Codec<T> {
-	@Suppress("UNCHECKED_CAST")
-	override fun <V : Any> encode(input: T, ops: DynamicOps<V>, prefix: V): DataResult<V> {
-		return tryOrThrow<V> {
-			val cod = SerializationManager[ops]
-				?: throw UnsupportedOperationException("${ops::class.simpleName} is not a supported DynamicOps instance.")
+    @Suppress("UNCHECKED_CAST")
+    override fun <V : Any> encode(input: T, ops: DynamicOps<V>, prefix: V): DataResult<V> {
+        return tryOrThrow<V> {
+            val cod = SerializationManager[ops]
+                ?: throw UnsupportedOperationException("${ops::class.simpleName} is not a supported DynamicOps instance.")
 
-			cod.encode(input, serializer as KSerializer<Any>) as V
-		}
-	}
+            cod.encode(input, serializer as KSerializer<Any>) as V
+        }
+    }
 
-	@Suppress("UNCHECKED_CAST")
-	override fun <V : Any> decode(
-		ops: DynamicOps<V>,
-		input: V
-	): DataResult<Pair<T, V>> {
-		return tryOrThrow<Pair<T, V>> {
-			val cod = SerializationManager[ops]
-				?: throw UnsupportedOperationException("${ops::class.simpleName} is not a supported DynamicOps instance.")
+    @Suppress("UNCHECKED_CAST")
+    override fun <V : Any> decode(
+        ops: DynamicOps<V>,
+        input: V
+    ): DataResult<Pair<T, V>> {
+        return tryOrThrow<Pair<T, V>> {
+            val cod = SerializationManager[ops]
+                ?: throw UnsupportedOperationException("${ops::class.simpleName} is not a supported DynamicOps instance.")
 
-			val value = cod.decode(input, serializer as KSerializer<Any>) as T
+            val value = cod.decode(input, serializer as KSerializer<Any>) as T
 
-			Pair(value, input)
-		}
-	}
+            Pair(value, input)
+        }
+    }
 }
 
 internal fun <T : Any> tryOrThrow(action: () -> T): DataResult<T> {
-	return try {
-		DataResult.success(action())
-	} catch (err: Exception) {
-		DataResult.error(err::message)
-	}
+    return try {
+        DataResult.success(action())
+    } catch (err: Exception) {
+        DataResult.error(err::message)
+    }
 }
 
 /**
@@ -164,37 +164,37 @@ internal fun <T : Any> tryOrThrow(action: () -> T): DataResult<T> {
  */
 @Suppress("UNCHECKED_CAST")
 open class CodecSerializer<T>(private val codec: Codec<T>) : KSerializer<T> {
-	@OptIn(InternalSerializationApi::class)
-	override val descriptor
-		get() = buildSerialDescriptor("CodecSerializer", PolymorphicKind.SEALED) {
-			SerializationManager.serializers.forEach {
-				element(it.name ?: it.descriptor.serialName, defer { it.descriptor })
-			}
-		}
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor
+        get() = buildSerialDescriptor("CodecSerializer", PolymorphicKind.SEALED) {
+            SerializationManager.serializers.forEach {
+                element(it.name ?: it.descriptor.serialName, defer { it.descriptor })
+            }
+        }
 
-	override fun serialize(encoder: Encoder, value: T) {
-		val ser = SerializationManager[encoder]
-			?: throw UnsupportedOperationException("${encoder::class.simpleName} is not a supported serializer type.")
+    override fun serialize(encoder: Encoder, value: T) {
+        val ser = SerializationManager[encoder]
+            ?: throw UnsupportedOperationException("${encoder::class.simpleName} is not a supported serializer type.")
 
-		ser.operation.encode(encoder, codec as Codec<Any>, value as Any)
-	}
+        ser.operation.encode(encoder, codec as Codec<Any>, value as Any)
+    }
 
-	override fun deserialize(decoder: Decoder): T {
-		val ser = SerializationManager[decoder]
-			?: throw UnsupportedOperationException("${decoder::class.simpleName} is not a supported serializer type.")
+    override fun deserialize(decoder: Decoder): T {
+        val ser = SerializationManager[decoder]
+            ?: throw UnsupportedOperationException("${decoder::class.simpleName} is not a supported serializer type.")
 
-		return ser.operation.decode(decoder, codec as Codec<Any>) as T
-	}
+        return ser.operation.decode(decoder, codec as Codec<Any>) as T
+    }
 }
 
 /**
  * Convert any [JsonElement] from kotlinx.serialization.json into [GsonElement] from gson
  */
 val JsonElement.toGson: GsonElement
-	get() = JsonParser.parseString(this.toString())
+    get() = JsonParser.parseString(this.toString())
 
 /**
  * Convert any [GsonElement] from gson into [JsonElement] kotlinx.serialization.json
  */
 val GsonElement.toKson: JsonElement
-	get() = SerializationManager.json.parseToJsonElement(this.toString())
+    get() = SerializationManager.json.parseToJsonElement(this.toString())

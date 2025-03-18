@@ -86,10 +86,6 @@ fun Checkbox(
                         minHeight = height
                     )
                 } else this
-            }
-            .also {
-//                println()
-            }
-                then modifier,
+            } then modifier,
     )
 }

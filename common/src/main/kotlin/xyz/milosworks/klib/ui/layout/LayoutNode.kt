@@ -6,7 +6,6 @@ import net.minecraft.network.chat.Component
 import xyz.milosworks.klib.ui.extensions.drawRectOutline
 import xyz.milosworks.klib.ui.extensions.fillGradient
 import xyz.milosworks.klib.ui.modifiers.*
-import xyz.milosworks.klib.ui.modifiers.padding.PaddingModifier
 import xyz.milosworks.klib.ui.nodes.UINode
 import kotlin.reflect.KClass
 
@@ -18,12 +17,6 @@ const val DEBUG_TEXT = 0xFFFFFFFF.toInt()
 const val lineSpacing = 2
 const val columnSpacing = 6
 
-/**
- * TODO structure is really not decided on yet.
- *  I'd really like to avoid inheritance, and have only one ComposableNode call that creates Layout.
- *  You can configure stuff through [measurePolicy], [placer], and the [modifier], but things creates some problems
- *  when trying to make your own composable nodes that interact with this Layout node.
- */
 internal class LayoutNode(
     private val nodeName: String = "LayoutNode",
 ) : Measurable, Placeable, UINode {
@@ -81,14 +74,7 @@ internal class LayoutNode(
 
     private fun coercedConstraints(constraints: Constraints) = with(constraints) {
         object : Placeable by this@LayoutNode {
-            override var width: Int = this@LayoutNode.width.coerceIn(minWidth..maxWidth).also {
-                if (this@LayoutNode.modifier.contains<PaddingModifier>()) {
-                    println(this@LayoutNode)
-                    println(it)
-                    println(minWidth)
-                    println(maxWidth)
-                }
-            }
+            override var width: Int = this@LayoutNode.width.coerceIn(minWidth..maxWidth)
             override var height: Int = this@LayoutNode.height.coerceIn(minHeight..maxHeight)
         }
     }
@@ -102,9 +88,7 @@ internal class LayoutNode(
         if (width != result.width || height != result.height) {
             get<OnSizeChangedModifier>()?.onSizeChanged?.invoke(Size(result.width, result.height))
         }
-        if (modifier.contains<PaddingModifier>()) {
-//            println()
-        }
+
         width = result.width
         height = result.height
         result.placer.placeChildren()
@@ -112,9 +96,7 @@ internal class LayoutNode(
         val layoutConstraints = layoutChangingModifiers.fold(constraints) { outer, modifier ->
             modifier.modifyLayoutConstraints(IntSize(result.width, result.height), outer)
         }
-        if (modifier.contains<PaddingModifier>()) {
-//            println()
-        }
+
         // Returned constraints will always appear as though they are in parent's bounds
         return coercedConstraints(layoutConstraints)
     }
@@ -129,10 +111,6 @@ internal class LayoutNode(
 
     override fun render(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (parent == null) guiGraphics.pose().pushPose()
-
-        if (modifier.contains<PaddingModifier>()) {
-            println()
-        }
 
         val dx = this.x + x
         val dy = this.y + y
@@ -240,52 +218,6 @@ internal class LayoutNode(
 
     internal fun isBounded(mouseX: Int, mouseY: Int) =
         mouseX in absoluteCoords.x until (absoluteCoords.x + width) && mouseY in absoluteCoords.y until (absoluteCoords.y + height)
-
-//	/**
-//	 * @return Whether no elements were clickable or any element requested the bukkit click event to be cancelled.
-//	 */
-//	fun processClick(scope: ClickScope, x: Int, y: Int): ClickResult {
-//		val cancelClickEvent = get<ClickModifier>()?.run {
-//			onClick.invoke(scope)
-//			cancelClickEvent
-//		}
-//		return children
-//			.filter { x in it.x until (it.x + it.width) && y in it.y until (it.y + it.height) }
-//			.fold(ClickResult(cancelClickEvent)) { acc, it ->
-//				acc.mergeWith(it.processClick(scope, x - it.x, y - it.y))
-//			}
-//	}
-//
-//	data class DragInfo(
-//		val dragModifier: DragModifier,
-//		val itemMap: ItemPositions = ItemPositions(),
-//	)
-//
-//	fun buildDragMap(coords: IntCoordinates, item: ItemStack, dragMap: MutableMap<GuiyNode, DragInfo>): Boolean {
-//		val (iX, iY) = coords
-//		if (iX !in 0 until width || iY !in 0 until height) return false
-//		val dragModifier = get<DragModifier>()
-//		if (dragModifier != null) {
-//			val drag = dragMap.getOrPut(this) { DragInfo(dragModifier) }
-//			dragMap[this] = drag.copy(itemMap = drag.itemMap.plus(iX, iY, item))
-//			return true
-//		}
-//		return children.any { child ->
-//			//TODO ensure this offset is still correct in x,y
-//			val newCoords = IntCoordinates(iX - x + child.x, iY - x + child.x)
-//			child.buildDragMap(newCoords, item, dragMap)
-//		}
-//	}
-//
-//	fun processDrag(scope: DragScope) {
-//		val dragMap = mutableMapOf<GuiyNode, DragInfo>()
-//		scope.updatedItems.items.forEach { (coords, item) ->
-//			buildDragMap(coords, item, dragMap)
-//		}
-//		dragMap.forEach { (_, info) ->
-//			info.dragModifier.onDrag.invoke(scope.copy(updatedItems = info.itemMap))
-//		}
-//	}
 
     override fun toString() = children.joinToString(prefix = "$nodeName(", postfix = ")")
 

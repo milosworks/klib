@@ -10,15 +10,15 @@ import xyz.milosworks.klib.KLib
 /** @suppress suppress for dokka */
 @Mod(KLib.ID)
 object KLibNeoForge {
-	init {
-		MOD_BUS.addListener<FMLConstructModEvent> {
-			KLib.init()
-		}
-		MOD_BUS.addListener<FMLClientSetupEvent> {
-			KLib.initClient()
-		}
-		MOD_BUS.addListener<FMLCommonSetupEvent> {
-			KLib.initCommon()
-		}
-	}
+    init {
+        MOD_BUS.addListener<FMLConstructModEvent> {
+            KLib.init()
+        }
+        MOD_BUS.addListener<FMLClientSetupEvent> {
+            KLib.initClient()
+        }
+        MOD_BUS.addListener<FMLCommonSetupEvent> {
+            KLib.initCommon()
+        }
+    }
 }
