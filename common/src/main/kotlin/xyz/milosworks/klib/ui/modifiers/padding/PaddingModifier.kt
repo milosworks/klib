@@ -28,11 +28,13 @@ data class PaddingModifier(
 
     override fun modifyPosition(offset: IntOffset): IntOffset = offset + padding.getOffset()
 
+    // Shrink inside constraints by padding
     override fun modifyInnerConstraints(constraints: Constraints) = constraints.offset(
         horizontal = -horizontal,
         vertical = -vertical,
     )
 
+    // Grow outside constraints by padding
     override fun modifyLayoutConstraints(measuredSize: IntSize, constraints: Constraints): Constraints {
         val width = (measuredSize.width + horizontal).coerceIn(constraints.minWidth, constraints.maxWidth)
         val height = (measuredSize.height + vertical).coerceIn(constraints.minHeight, constraints.maxHeight)

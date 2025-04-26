@@ -72,12 +72,12 @@ internal class LayoutNode(
         get() = parent?.extraDebug ?: field
         set(value) = parent?.let { parent!!.extraDebug = value } ?: run { field = value }
 
-    private fun coercedConstraints(constraints: Constraints) = with(constraints) {
-        object : Placeable by this@LayoutNode {
-            override var width: Int = this@LayoutNode.width.coerceIn(minWidth..maxWidth)
-            override var height: Int = this@LayoutNode.height.coerceIn(minHeight..maxHeight)
-        }
-    }
+//    private fun coercedConstraints(constraints: Constraints) = with(constraints) {
+//        object : Placeable by this@LayoutNode {
+//            override var width: Int = this@LayoutNode.width.coerceIn(minWidth..maxWidth)
+//            override var height: Int = this@LayoutNode.height.coerceIn(minHeight..maxHeight)
+//        }
+//    }
 
     override fun measure(constraints: Constraints): Placeable {
         val innerConstraints = layoutChangingModifiers.fold(constraints) { inner, modifier ->
@@ -97,8 +97,15 @@ internal class LayoutNode(
             modifier.modifyLayoutConstraints(IntSize(result.width, result.height), outer)
         }
 
-        // Returned constraints will always appear as though they are in parent's bounds
-        return coercedConstraints(layoutConstraints)
+        // Update width and height based on the modified layout constraints
+        width = width.coerceIn(layoutConstraints.minWidth..layoutConstraints.maxWidth)
+        height = height.coerceIn(layoutConstraints.minHeight..layoutConstraints.maxHeight)
+
+        // Return a placeable with the updated width and height
+        return object : Placeable by this {
+            override var width: Int = this@LayoutNode.width
+            override var height: Int = this@LayoutNode.height
+        }
     }
 
     override fun placeAt(x: Int, y: Int) {
