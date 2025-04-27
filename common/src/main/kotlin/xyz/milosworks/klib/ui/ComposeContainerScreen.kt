@@ -148,6 +148,9 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        // CTRL + SHIFT
+        // CTRL is detected as modifier 3
+        // SHIFT is the detected key
         if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
         if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
 

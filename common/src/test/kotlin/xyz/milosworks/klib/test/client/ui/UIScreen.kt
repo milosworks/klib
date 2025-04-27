@@ -6,10 +6,11 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import xyz.milosworks.klib.ui.ComposeContainerScreen
 import xyz.milosworks.klib.ui.components.Spacer
+import xyz.milosworks.klib.ui.components.Surface
 import xyz.milosworks.klib.ui.layout.Row
 import xyz.milosworks.klib.ui.modifiers.Modifier
 import xyz.milosworks.klib.ui.modifiers.background
-import xyz.milosworks.klib.ui.modifiers.padding.padding
+import xyz.milosworks.klib.ui.modifiers.margin.outset
 import xyz.milosworks.klib.ui.modifiers.size
 import xyz.milosworks.klib.ui.util.KColor
 
@@ -24,9 +25,11 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 
     @Composable
     fun content() {
-        Row {
-            Spacer(Modifier.background(KColor.BLUE).size(20))
-            Spacer(Modifier.background(KColor.GREEN).size(20).padding(start = 10))
+        Surface {
+            Row {
+                Spacer(Modifier.background(KColor.BLUE).size(20).outset(10, 10, 10, 10))
+                Spacer(Modifier.background(KColor.GREEN).size(20))
+            }
         }
     }
 

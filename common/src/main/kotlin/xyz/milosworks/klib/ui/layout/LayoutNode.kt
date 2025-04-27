@@ -6,13 +6,17 @@ import net.minecraft.network.chat.Component
 import xyz.milosworks.klib.ui.extensions.drawRectOutline
 import xyz.milosworks.klib.ui.extensions.fillGradient
 import xyz.milosworks.klib.ui.modifiers.*
+import xyz.milosworks.klib.ui.modifiers.margin.OutsetModifier
 import xyz.milosworks.klib.ui.nodes.UINode
 import kotlin.reflect.KClass
 
+// AARRGGBB
 const val COMPONENT_OUTLINE = 0xFF00FFFF.toInt()
 const val DEBUG_OUTLINE = 0xFF000000.toInt()
 const val DEBUG_FILL = 0xA7000000.toInt()
 const val DEBUG_TEXT = 0xFFFFFFFF.toInt()
+const val OUTSET_FILL = 0x80800080.toInt()
+const val INSET_FILL = 0x33FF9AA2.toInt()
 
 const val lineSpacing = 2
 const val columnSpacing = 6
@@ -67,41 +71,41 @@ internal class LayoutNode(
     val rootNode: LayoutNode get() = parent?.rootNode ?: this
     var debug: Boolean = false
         get() = parent?.debug ?: field
-        set(value) = parent?.let { parent!!.debug = value } ?: run { field = value }
+        set(value) = parent?.let { it.debug = value } ?: run { field = value }
     var extraDebug: Boolean = false
         get() = parent?.extraDebug ?: field
-        set(value) = parent?.let { parent!!.extraDebug = value } ?: run { field = value }
-
-//    private fun coercedConstraints(constraints: Constraints) = with(constraints) {
-//        object : Placeable by this@LayoutNode {
-//            override var width: Int = this@LayoutNode.width.coerceIn(minWidth..maxWidth)
-//            override var height: Int = this@LayoutNode.height.coerceIn(minHeight..maxHeight)
-//        }
-//    }
+        set(value) = parent?.let { it.extraDebug = value } ?: run { field = value }
 
     override fun measure(constraints: Constraints): Placeable {
-        val innerConstraints = layoutChangingModifiers.fold(constraints) { inner, modifier ->
-            modifier.modifyInnerConstraints(inner)
-        }
+        val outset =
+            children.fold(listOf<OutsetModifier>()) { acc, child -> acc + child.layoutChangingModifiers.filterIsInstance<OutsetModifier>() }
+        val horizontal = outset.fold(0) { horizontal, modifier -> modifier.horizontal + horizontal }
+        val vertical = outset.fold(0) { vertical, modifier -> modifier.vertical + vertical }
+
+        val innerConstraints =
+            layoutChangingModifiers.fold(constraints) { inner, modifier -> modifier.modifyInnerConstraints(inner) }
+
         val result = measurePolicy.measure(children, innerConstraints)
 
-        if (width != result.width || height != result.height) {
-            get<OnSizeChangedModifier>()?.onSizeChanged?.invoke(Size(result.width, result.height))
+        val newWidth = result.width + horizontal
+        val newHeight = result.height + vertical
+
+        if (width != newWidth || height != newHeight) {
+            get<OnSizeChangedModifier>()?.onSizeChanged?.invoke(Size(newWidth, newHeight))
         }
 
-        width = result.width
-        height = result.height
-        result.placer.placeChildren()
+        width = newWidth
+        height = newHeight
 
         val layoutConstraints = layoutChangingModifiers.fold(constraints) { outer, modifier ->
-            modifier.modifyLayoutConstraints(IntSize(result.width, result.height), outer)
+            modifier.modifyLayoutConstraints(IntSize(newWidth, newHeight), outer)
         }
 
-        // Update width and height based on the modified layout constraints
         width = width.coerceIn(layoutConstraints.minWidth..layoutConstraints.maxWidth)
         height = height.coerceIn(layoutConstraints.minHeight..layoutConstraints.maxHeight)
 
-        // Return a placeable with the updated width and height
+        result.placer.placeChildren()
+
         return object : Placeable by this {
             override var width: Int = this@LayoutNode.width
             override var height: Int = this@LayoutNode.height
@@ -152,6 +156,24 @@ internal class LayoutNode(
         if (!isBounded(mouseX, mouseY)) return
 
         guiGraphics.drawRectOutline(dx, dy, width, height, COMPONENT_OUTLINE)
+
+        val outsetModifier = modifier.get<OutsetModifier>()
+        outsetModifier?.let { mod ->
+            with(mod.outset) {
+                if (top != 0) {
+                    guiGraphics.fill(dx, dy - top, dx + width, dy, OUTSET_FILL)
+                }
+                if (bottom != 0) {
+                    guiGraphics.fill(dx, dy + height + bottom, dx + width, dy, OUTSET_FILL)
+                }
+                if (left != 0) {
+                    guiGraphics.fill(dx - left, dy, dx + width, dy + height, OUTSET_FILL)
+                }
+                if (right != 0) {
+                    guiGraphics.fill(dx + width + right, dy, dx + width, dy + height, OUTSET_FILL)
+                }
+            }
+        }
 
         val debugStartX = dx + 1
         var debugStartY = dy + height + 1
