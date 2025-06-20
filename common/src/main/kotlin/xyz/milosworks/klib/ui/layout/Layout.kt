@@ -2,9 +2,11 @@ package xyz.milosworks.klib.ui.layout
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ComposeNode
-import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.nodes.UINode
-import xyz.milosworks.klib.ui.nodes.UINodeApplier
+import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
+import xyz.milosworks.klib.ui.layout.measure.MeasurePolicy
+import xyz.milosworks.klib.ui.layout.measure.Renderer
+import xyz.milosworks.klib.ui.modifiers.core.Modifier
 
 /**
  * A fundamental composable that is used to create custom layouts by defining the measurement
@@ -36,18 +38,18 @@ import xyz.milosworks.klib.ui.nodes.UINodeApplier
  */
 @Composable
 inline fun Layout(
-	measurePolicy: MeasurePolicy,
-	renderer: Renderer = EmptyRenderer,
-	modifier: Modifier = Modifier,
-	content: @Composable () -> Unit = {}
+    measurePolicy: MeasurePolicy,
+    renderer: Renderer = EmptyRenderer,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit = {}
 ) {
-	ComposeNode<UINode, UINodeApplier>(
-		factory = UINode.Constructor(Thread.currentThread().stackTrace[1].methodName),
-		update = {
-			set(measurePolicy) { this.measurePolicy = it }
-			set(renderer) { this.renderer = it }
-			set(modifier) { this.modifier = it }
-		},
-		content = content,
-	)
+    ComposeNode<UINode, UINodeApplier>(
+        factory = UINode.Companion.Constructor(Thread.currentThread().stackTrace[1].methodName),
+        update = {
+            set(measurePolicy) { this.measurePolicy = it }
+            set(renderer) { this.renderer = it }
+            set(modifier) { this.modifier = it }
+        },
+        content = content,
+    )
 }

@@ -7,7 +7,7 @@ import dev.architectury.registry.ReloadListenerRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
 import org.slf4j.Logger
-import xyz.milosworks.klib.ui.util.ThemeResourceListener
+import xyz.milosworks.klib.ui.utils.ThemeResourceListener
 
 
 /** @suppress suppress for dokka */

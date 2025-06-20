@@ -1,8 +1,8 @@
 package xyz.milosworks.klib.ui.modifiers.input
 
 import androidx.compose.runtime.Stable
-import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.nodes.UINode
+import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.modifiers.core.Modifier
 
 const val LONG_CLICK_THRESHOLD = 500
 const val DOUBLE_CLICK_THRESHOLD = 300
@@ -18,7 +18,8 @@ enum class PointerEventType {
     MOVE,
     ENTER,
     EXIT,
-    SCROLL
+    SCROLL,
+    DRAG
 }
 
 data class OnPointerEventModifier(
@@ -32,6 +33,16 @@ data class OnPointerEventModifier(
 @Stable
 fun Modifier.onPointerEvent(type: PointerEventType, onEvent: (UINode, PointerEvent) -> Unit): Modifier =
     this then OnPointerEventModifier(type, onEvent)
+
+@Suppress("UNCHECKED_CAST")
+@Stable
+fun Modifier.onScroll(onScrollEvent: (UINode, ScrollEvent) -> Unit): Modifier =
+    this then OnPointerEventModifier(PointerEventType.SCROLL, onScrollEvent as (UINode, PointerEvent) -> Unit)
+
+@Suppress("UNCHECKED_CAST")
+@Stable
+fun Modifier.onDrag(onDragEvent: (UINode, DragEvent) -> Unit): Modifier =
+    this then OnPointerEventModifier(PointerEventType.DRAG, onDragEvent as (UINode, PointerEvent) -> Unit)
 
 @Stable
 fun Modifier.combinedClickable(

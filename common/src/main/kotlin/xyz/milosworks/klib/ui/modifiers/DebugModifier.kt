@@ -2,6 +2,7 @@ package xyz.milosworks.klib.ui.modifiers
 
 import androidx.compose.runtime.Stable
 import net.minecraft.network.chat.Component
+import xyz.milosworks.klib.ui.modifiers.core.Modifier
 
 /**
  * A modifier that adds additional debug information to a composable for inspection in debug mode.

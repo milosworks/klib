@@ -1,18 +1,26 @@
 package xyz.milosworks.klib.test.client.ui
 
 import androidx.compose.runtime.Composable
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
-import xyz.milosworks.klib.ui.ComposeContainerScreen
-import xyz.milosworks.klib.ui.components.Spacer
-import xyz.milosworks.klib.ui.components.Surface
-import xyz.milosworks.klib.ui.layout.Row
-import xyz.milosworks.klib.ui.modifiers.Modifier
-import xyz.milosworks.klib.ui.modifiers.background
-import xyz.milosworks.klib.ui.modifiers.margin.outset
-import xyz.milosworks.klib.ui.modifiers.size
-import xyz.milosworks.klib.ui.util.KColor
+import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.Blocks
+import xyz.milosworks.klib.ui.base.ComposeContainerScreen
+import xyz.milosworks.klib.ui.components.basic.Block
+import xyz.milosworks.klib.ui.components.basic.Item
+import xyz.milosworks.klib.ui.components.basic.Spacer
+import xyz.milosworks.klib.ui.components.containers.Surface
+import xyz.milosworks.klib.ui.layout.containers.Column
+import xyz.milosworks.klib.ui.layout.containers.Row
+import xyz.milosworks.klib.ui.modifiers.appearance.background
+import xyz.milosworks.klib.ui.modifiers.core.Modifier
+import xyz.milosworks.klib.ui.modifiers.layout.size
+import xyz.milosworks.klib.ui.modifiers.position.inset.inset
+import xyz.milosworks.klib.ui.modifiers.position.outset.outset
+import xyz.milosworks.klib.ui.utils.KColor
 
 class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
     ComposeContainerScreen<UIMenu>(menu, inventory, title) {
@@ -25,13 +33,38 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
 
     @Composable
     fun content() {
-        Surface {
+        Surface(modifier = Modifier.inset(10)) {
             Row {
-                Spacer(Modifier.background(KColor.BLUE).size(20).outset(10, 10, 10, 10))
-                Spacer(Modifier.background(KColor.GREEN).size(20))
+                Block(
+                    Blocks.CHEST.defaultBlockState(),
+                    Minecraft.getInstance().level!!.getBlockEntity(BlockPos(-95, 74, 212)),
+                    modifier = Modifier.size(50)
+                )
+                Item(
+                    Items.DIAMOND_AXE.defaultInstance,
+                    modifier = Modifier.size(50)
+                )
+                Column(modifier = Modifier.outset(left = 10)) {
+                    Spacer(Modifier.background(KColor.GREEN).size(20))
+                    Spacer(Modifier.background(KColor.BLUE).size(20).outset(top = 10, bottom = 10))
+                    Spacer(Modifier.background(KColor.RED).size(20))
+                }
             }
         }
     }
+
+    //                Spacer(
+//                    Modifier
+//                        .size(50)
+//                        .onScroll { node, event ->
+//                            println("Scrolled: X=${event.scrollX}, Y=${event.scrollY}")
+//                            event.consume()
+//                        }
+//                        .onDrag { node, event ->
+//                            println("Dragged: button=${event.button}, dragX=${event.dragX}, dragY=${event.dragY}")
+//                            event.consume()
+//                        }
+//                )
 
 //    @Composable
 //    fun content2() {

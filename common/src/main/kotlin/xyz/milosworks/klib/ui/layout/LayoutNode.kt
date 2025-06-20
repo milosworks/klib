@@ -3,11 +3,22 @@ package xyz.milosworks.klib.ui.layout
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import xyz.milosworks.klib.ui.extensions.drawRectOutline
-import xyz.milosworks.klib.ui.extensions.fillGradient
-import xyz.milosworks.klib.ui.modifiers.*
-import xyz.milosworks.klib.ui.modifiers.margin.OutsetModifier
-import xyz.milosworks.klib.ui.nodes.UINode
+import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.layout.measure.*
+import xyz.milosworks.klib.ui.layout.primitive.IntCoordinates
+import xyz.milosworks.klib.ui.layout.primitive.IntOffset
+import xyz.milosworks.klib.ui.layout.primitive.IntSize
+import xyz.milosworks.klib.ui.layout.primitive.Size
+import xyz.milosworks.klib.ui.modifiers.DebugModifier
+import xyz.milosworks.klib.ui.modifiers.appearance.BackgroundModifier
+import xyz.milosworks.klib.ui.modifiers.appearance.GradientDirection
+import xyz.milosworks.klib.ui.modifiers.appearance.OutlineModifier
+import xyz.milosworks.klib.ui.modifiers.core.*
+import xyz.milosworks.klib.ui.modifiers.layout.OnSizeChangedModifier
+import xyz.milosworks.klib.ui.modifiers.position.inset.InsetModifier
+import xyz.milosworks.klib.ui.modifiers.position.outset.OutsetModifier
+import xyz.milosworks.klib.ui.utils.extensions.drawRectOutline
+import xyz.milosworks.klib.ui.utils.extensions.fillGradient
 import kotlin.reflect.KClass
 
 // AARRGGBB
@@ -23,7 +34,7 @@ const val columnSpacing = 6
 
 internal class LayoutNode(
     private val nodeName: String = "LayoutNode",
-) : Measurable, Placeable, UINode {
+) : Measurable, Placeable, UINode, MeasureScope {
     override var measurePolicy: MeasurePolicy = ChildMeasurePolicy
     override var renderer: Renderer = EmptyRenderer
     val children = mutableListOf<LayoutNode>()
@@ -78,17 +89,21 @@ internal class LayoutNode(
 
     override fun measure(constraints: Constraints): Placeable {
         val outset =
-            children.fold(listOf<OutsetModifier>()) { acc, child -> acc + child.layoutChangingModifiers.filterIsInstance<OutsetModifier>() }
+            children.fold(listOf<OutsetModifier>()) { acc, child -> acc + child.modifier.getAll<OutsetModifier>() }
         val horizontal = outset.fold(0) { horizontal, modifier -> modifier.horizontal + horizontal }
         val vertical = outset.fold(0) { vertical, modifier -> modifier.vertical + vertical }
 
         val innerConstraints =
             layoutChangingModifiers.fold(constraints) { inner, modifier -> modifier.modifyInnerConstraints(inner) }
 
-        val result = measurePolicy.measure(children, innerConstraints)
+        val result = measurePolicy.measure(this, children, innerConstraints)
 
-        val newWidth = result.width + horizontal
-        val newHeight = result.height + vertical
+        val inset = this.modifier.get<InsetModifier>()
+        val insetHorizontal = inset?.horizontal ?: 0
+        val insetVertical = inset?.vertical ?: 0
+
+        val newWidth = result.width + horizontal + insetHorizontal
+        val newHeight = result.height + vertical + insetVertical
 
         if (width != newWidth || height != newHeight) {
             get<OnSizeChangedModifier>()?.onSizeChanged?.invoke(Size(newWidth, newHeight))
@@ -160,14 +175,23 @@ internal class LayoutNode(
         val outsetModifier = modifier.get<OutsetModifier>()
         outsetModifier?.let { mod ->
             with(mod.outset) {
+//                if (top != 0 && bottom != 0 && left != 0 && right != 0) {
+//                    guiGraphics.fill(dx - left, dy - top, dx + width + right, dy, OUTSET_FILL)
+//                    guiGraphics.fill(dx - left, dy, dx, dy + height, OUTSET_FILL)
+//                    guiGraphics.fill(dx + width + right, dy, dx + width, dy + height, OUTSET_FILL)
+//                    guiGraphics.fill(dx - left, dy + height + bottom, dx + width + right, dy + height, OUTSET_FILL)
+//
+//                    return@let
+//                }
+
                 if (top != 0) {
                     guiGraphics.fill(dx, dy - top, dx + width, dy, OUTSET_FILL)
                 }
                 if (bottom != 0) {
-                    guiGraphics.fill(dx, dy + height + bottom, dx + width, dy, OUTSET_FILL)
+                    guiGraphics.fill(dx, dy + height + bottom, dx + width, dy + height, OUTSET_FILL)
                 }
                 if (left != 0) {
-                    guiGraphics.fill(dx - left, dy, dx + width, dy + height, OUTSET_FILL)
+                    guiGraphics.fill(dx - left, dy, dx, dy + height, OUTSET_FILL)
                 }
                 if (right != 0) {
                     guiGraphics.fill(dx + width + right, dy, dx + width, dy + height, OUTSET_FILL)
@@ -251,13 +275,13 @@ internal class LayoutNode(
     override fun toString() = children.joinToString(prefix = "$nodeName(", postfix = ")")
 
     internal companion object {
-        val ChildMeasurePolicy = MeasurePolicy { measurables, constraints ->
+        val ChildMeasurePolicy = MeasurePolicy { scope, measurables, constraints ->
             val placeables = measurables.map { it.measure(constraints) }
             MeasureResult(placeables.maxOfOrNull { it.width } ?: 0, placeables.maxOfOrNull { it.height } ?: 0) {
                 placeables.forEach { it.placeAt(0, 0) }
             }
         }
-        private val ErrorMeasurePolicy = MeasurePolicy { _, _ -> error("Measurer not defined") }
+        private val ErrorMeasurePolicy = MeasurePolicy { _, _, _ -> error("Measurer not defined") }
     }
 }
 
