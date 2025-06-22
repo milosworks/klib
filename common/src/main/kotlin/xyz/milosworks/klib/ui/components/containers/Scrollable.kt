@@ -1,88 +1,156 @@
 package xyz.milosworks.klib.ui.components.containers
 
 import androidx.compose.runtime.*
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.util.Mth
+import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW
-import xyz.milosworks.klib.ui.layout.measure.Measurable
-import xyz.milosworks.klib.ui.layout.measure.MeasurePolicy
-import xyz.milosworks.klib.ui.layout.measure.MeasureResult
-import xyz.milosworks.klib.ui.layout.measure.MeasureScope
-import xyz.milosworks.klib.ui.layout.primitive.Alignment
+import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.layout.Layout
+import xyz.milosworks.klib.ui.layout.measure.*
 import xyz.milosworks.klib.ui.modifiers.core.Constraints
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
+import xyz.milosworks.klib.ui.modifiers.input.*
+import xyz.milosworks.klib.ui.utils.KColor
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-enum class ScrollDirection {
-    VERTICAL,
-    HORIZONTAL;
+private const val SCROLLBAR_THICKNESS = 4
+private const val SCROLL_SENSITIVITY = 15.0
+private const val SCROLLBAR_FADE_DURATION_MS = 1000L
+private const val MIN_SCROLLBAR_THUMB_SIZE = 10
 
-    fun choose(horizontal: Double, vertical: Double): Double = when (this) {
+/**
+ * The direction of scrolling for a [Scrollable] container.
+ */
+enum class ScrollDirection {
+    VERTICAL, HORIZONTAL;
+
+    fun choose(
+        horizontal: Double,
+        vertical: Double
+    ): Double = when (this) {
         VERTICAL -> vertical
         HORIZONTAL -> horizontal
     }
-
-    val lessKeycode: Int
-        get() = when (this) {
-            VERTICAL -> GLFW.GLFW_KEY_UP
-            HORIZONTAL -> GLFW.GLFW_KEY_LEFT
-        }
-
-    val moreKeycode: Int
-        get() = when (this) {
-            VERTICAL -> GLFW.GLFW_KEY_DOWN
-            HORIZONTAL -> GLFW.GLFW_KEY_RIGHT
-        }
 }
 
+/**
+ * Manages the state for a [Scrollable] composable.
+ *
+ * Can be created and remembered using [rememberScrollableState].
+ */
+@Stable
+class ScrollableState {
+    // The target scroll position, updated by user input
+    var scrollOffset by mutableStateOf(0.0)
+
+    // The current visual scroll position, which animates towards scrollOffset
+    var currentScrollPosition by mutableStateOf(0.0)
+
+    var maxScroll by mutableStateOf(0)
+    var childSize by mutableStateOf(0)
+    var containerSize by mutableStateOf(0)
+
+    var isDraggingScrollbar by mutableStateOf(false)
+    var lastInteractTime by mutableStateOf(0L)
+
+    fun onInteraction() {
+        lastInteractTime = System.currentTimeMillis()
+    }
+
+    fun scrollBy(delta: Double) {
+        scrollOffset =
+            (scrollOffset + delta).coerceIn(
+                0.0,
+                maxScroll.toDouble()
+            )
+        onInteraction()
+    }
+}
+
+/**
+ * Creates and remembers a [ScrollableState].
+ */
+@Composable
+fun rememberScrollableState(): ScrollableState {
+    return remember { ScrollableState() }
+}
+
+/**
+ * A container that allows its single child to be scrolled if the child's content
+ * is larger than the container's bounds.
+ *
+ * @param direction The direction in which the content can be scrolled.
+ * @param scrollbarColor The color of the scrollbar thumb.
+ * @param modifier The modifier to be applied to the layout.
+ * @param state The state object that holds and controls the scroll position. Defaults to a remembered state.
+ * @param content The single child composable to be made scrollable.
+ */
 @Composable
 fun Scrollable(
     direction: ScrollDirection = ScrollDirection.VERTICAL,
+    scrollbarColor: KColor = KColor.DARK_GRAY,
     modifier: Modifier = Modifier,
+    state: ScrollableState = rememberScrollableState(),
     content: @Composable () -> Unit
 ) {
-    var scrollOffset by remember { mutableStateOf(0.0) }
-    var currentScrollPosition by remember { mutableStateOf(0.0) }
-    var maxScroll by remember { mutableStateOf(0) }
-    var childSize by remember { mutableStateOf(0) }
-    var scrollbarOffset by remember { mutableStateOf(0) }
-    var lastInteractTime by remember { mutableStateOf(0L) }
-    var scrollbaring by remember { mutableStateOf(false) }
-    var scrollbarLength by remember { mutableStateOf(0.0) }
-
-    val measurePolicy = remember(Alignment.TopStart) {
+    val measurePolicy = remember(direction) {
         object : MeasurePolicy {
             override fun measure(
                 scope: MeasureScope,
                 measurables: List<Measurable>,
                 constraints: Constraints
             ): MeasureResult {
-                if (measurables.isEmpty()) return MeasureResult(0, 0) {}
+                if (measurables.isEmpty()) return MeasureResult(
+                    constraints.minWidth,
+                    constraints.minHeight
+                ) {}
 
-                // First, measure the content with the container's constraints
-                val contentConstraints = if (direction == ScrollDirection.VERTICAL) {
-                    constraints.copy(minHeight = 0, maxHeight = Int.MAX_VALUE)
-                } else {
-                    constraints.copy(minWidth = 0, maxWidth = Int.MAX_VALUE)
-                }
+                val contentConstraints =
+                    if (direction == ScrollDirection.VERTICAL) {
+                        constraints.copy(
+                            minHeight = 0,
+                            maxHeight = Int.MAX_VALUE
+                        )
+                    } else {
+                        constraints.copy(
+                            minWidth = 0,
+                            maxWidth = Int.MAX_VALUE
+                        )
+                    }
 
-                val placeable = measurables[0].measure(contentConstraints)
+                val placeable = measurables.first()
+                    .measure(contentConstraints)
 
-                // Compute maxScroll based on content size and container size
-                childSize = if (direction == ScrollDirection.VERTICAL) placeable.height else placeable.width
-                val containerSize =
-                    if (direction == ScrollDirection.VERTICAL) constraints.minHeight else constraints.minWidth
-                maxScroll = max(0, childSize - containerSize)
+                state.childSize = direction.choose(
+                    placeable.width.toDouble(),
+                    placeable.height.toDouble()
+                ).toInt()
+                state.containerSize =
+                    direction.choose(
+                        constraints.maxWidth.toDouble(),
+                        constraints.maxHeight.toDouble()
+                    ).toInt()
+                state.maxScroll = max(
+                    0,
+                    state.childSize - state.containerSize
+                )
+                state.scrollOffset =
+                    state.scrollOffset.coerceIn(
+                        0.0,
+                        state.maxScroll.toDouble()
+                    )
 
-                // Clamp scroll position
-                scrollOffset = scrollOffset.coerceIn(0.0, maxScroll.toDouble())
+                val finalWidth = constraints.maxWidth
+                val finalHeight = constraints.maxHeight
 
-                // Compute sizes for the MeasureResult
-                val width = constraints.minWidth
-                val height = constraints.minHeight
-
-                return MeasureResult(width, height) {
-                    // Position the content with the current scroll offset
-                    val scrollPos = currentScrollPosition.roundToInt()
+                return MeasureResult(
+                    finalWidth,
+                    finalHeight
+                ) {
+                    val scrollPos =
+                        state.currentScrollPosition.roundToInt()
                     if (direction == ScrollDirection.VERTICAL) {
                         placeable.placeAt(0, -scrollPos)
                     } else {
@@ -92,4 +160,193 @@ fun Scrollable(
             }
         }
     }
+
+    val renderer =
+        remember(direction, scrollbarColor, state) {
+            object : Renderer {
+                override fun render(
+                    node: UINode,
+                    x: Int,
+                    y: Int,
+                    guiGraphics: GuiGraphics,
+                    mouseX: Int,
+                    mouseY: Int,
+                    partialTick: Float
+                ) {
+                    // enable a clipping rectangle that matches the bounds of this Scrollable container
+                    // all child drawing that happens after this will be clipped to this area
+                    guiGraphics.enableScissor(
+                        x,
+                        y,
+                        x + node.width,
+                        y + node.height
+                    )
+                }
+
+                override fun renderAfterChildren(
+                    node: UINode,
+                    x: Int,
+                    y: Int,
+                    guiGraphics: GuiGraphics,
+                    mouseX: Int,
+                    mouseY: Int,
+                    partialTick: Float
+                ) {
+                    // smooth scrolling animation
+                    state.currentScrollPosition += (state.scrollOffset - state.currentScrollPosition) * 0.4 * partialTick
+
+                    // draw the scrollbar (it will also be clipped by the scissor test) this will be replaced by a texture
+                    if (state.maxScroll > 0) {
+                        val timeSinceInteract =
+                            System.currentTimeMillis() - state.lastInteractTime
+                        if (!(timeSinceInteract > SCROLLBAR_FADE_DURATION_MS && !state.isDraggingScrollbar)) {
+                            val fadeAlpha =
+                                if (state.isDraggingScrollbar) 1f else 1f - (timeSinceInteract.toFloat() / SCROLLBAR_FADE_DURATION_MS)
+                            val alpha = Mth.clamp(
+                                (fadeAlpha * scrollbarColor.alpha).toInt(),
+                                0,
+                                255
+                            )
+                            if (alpha > 0) {
+                                val colorWithAlpha =
+                                    (scrollbarColor.rgb) or (alpha shl 24)
+                                val trackSize =
+                                    state.containerSize
+                                val thumbSize = max(
+                                    MIN_SCROLLBAR_THUMB_SIZE,
+                                    (trackSize.toFloat() / state.childSize * trackSize).toInt()
+                                )
+                                val scrollPercentage =
+                                    if (state.maxScroll > 0) state.currentScrollPosition / state.maxScroll else 0.0
+                                val thumbPosition =
+                                    scrollPercentage * (trackSize - thumbSize)
+
+                                if (direction == ScrollDirection.VERTICAL) {
+                                    val thumbX =
+                                        x + node.width - SCROLLBAR_THICKNESS
+                                    val thumbY =
+                                        y + thumbPosition.roundToInt()
+                                    guiGraphics.fill(
+                                        thumbX,
+                                        thumbY,
+                                        thumbX + SCROLLBAR_THICKNESS,
+                                        thumbY + thumbSize,
+                                        colorWithAlpha
+                                    )
+                                } else {
+                                    val thumbX =
+                                        x + thumbPosition.roundToInt()
+                                    val thumbY =
+                                        y + node.height - SCROLLBAR_THICKNESS
+                                    guiGraphics.fill(
+                                        thumbX,
+                                        thumbY,
+                                        thumbX + thumbSize,
+                                        thumbY + SCROLLBAR_THICKNESS,
+                                        colorWithAlpha
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // IMPORTANT: disable the scissor test so that other UI elements outside this container can be rendered correctly.
+                    guiGraphics.disableScissor()
+                }
+            }
+        }
+
+    Layout(
+        measurePolicy = measurePolicy,
+        renderer = renderer,
+        modifier = modifier
+            .onScroll { _, event ->
+                state.scrollBy(-event.scrollY * SCROLL_SENSITIVITY)
+                event.consume()
+            }
+            .onPointerEvent(PointerEventType.PRESS) { node, event ->
+                val (mouseX, mouseY) = event.mouseX to event.mouseY
+                val (nodeX, nodeY) = node.x to node.y
+
+                val scrollbarBounds =
+                    if (direction == ScrollDirection.VERTICAL) {
+                        Vector4f(
+                            (nodeX + node.width - SCROLLBAR_THICKNESS).toFloat(),
+                            nodeY.toFloat(),
+                            (nodeX + node.width).toFloat(),
+                            (nodeY + node.height).toFloat()
+                        )
+                    } else {
+                        Vector4f(
+                            nodeX.toFloat(),
+                            (nodeY + node.height - SCROLLBAR_THICKNESS).toFloat(),
+                            (nodeX + node.width).toFloat(),
+                            (nodeY + node.height).toFloat()
+                        )
+                    }
+
+                if (mouseX >= scrollbarBounds.x && mouseX <= scrollbarBounds.z && mouseY >= scrollbarBounds.y && mouseY <= scrollbarBounds.w) {
+                    state.isDraggingScrollbar = true
+                    state.onInteraction()
+                    event.consume()
+                }
+            }
+            .onPointerEvent(PointerEventType.GLOBAL_RELEASE) { _, _ ->
+                state.isDraggingScrollbar = false
+            }
+            .onDrag { _, event ->
+                if (!state.isDraggingScrollbar) return@onDrag
+
+                val pixelDelta = direction.choose(
+                    event.dragX,
+                    event.dragY
+                )
+                val trackSize = state.containerSize
+                val thumbSize =
+                    max(
+                        MIN_SCROLLBAR_THUMB_SIZE,
+                        (trackSize.toFloat() / state.childSize * trackSize).toInt()
+                    )
+
+                if (trackSize > thumbSize) {
+                    val scrollDelta =
+                        pixelDelta * (state.maxScroll.toFloat() / (trackSize - thumbSize))
+                    state.scrollBy(scrollDelta)
+                }
+                event.consume()
+            }
+            .onKeyEvent { _, event ->
+                val amount =
+                    if (direction == ScrollDirection.VERTICAL) state.containerSize * 0.8 else state.containerSize * 0.8
+                when (event.keyCode) {
+                    GLFW.GLFW_KEY_DOWN -> if (direction == ScrollDirection.VERTICAL) state.scrollBy(
+                        SCROLL_SENSITIVITY
+                    )
+
+                    GLFW.GLFW_KEY_UP -> if (direction == ScrollDirection.VERTICAL) state.scrollBy(
+                        -SCROLL_SENSITIVITY
+                    )
+
+                    GLFW.GLFW_KEY_RIGHT -> if (direction == ScrollDirection.HORIZONTAL) state.scrollBy(
+                        SCROLL_SENSITIVITY
+                    )
+
+                    GLFW.GLFW_KEY_LEFT -> if (direction == ScrollDirection.HORIZONTAL) state.scrollBy(
+                        -SCROLL_SENSITIVITY
+                    )
+
+                    GLFW.GLFW_KEY_PAGE_DOWN -> state.scrollBy(
+                        amount
+                    )
+
+                    GLFW.GLFW_KEY_PAGE_UP -> state.scrollBy(
+                        -amount
+                    )
+
+                    else -> return@onKeyEvent
+                }
+                event.consume()
+            },
+        content = content
+    )
 }

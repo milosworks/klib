@@ -53,9 +53,14 @@ internal class LayoutNode(
                 if (element is LayoutChangingModifier) acc.add(element)
                 acc
             }
+            renderModifiers = modifier.foldIn(mutableListOf()) { acc, element ->
+                if (element is RenderModifier) acc.add(element)
+                acc
+            }
         }
     var processedModifier = mapOf<KClass<out Modifier.Element<*>>, Modifier.Element<*>>()
     var layoutChangingModifiers: List<LayoutChangingModifier> = emptyList()
+    var renderModifiers: List<RenderModifier> = emptyList()
 
     inline fun <reified T : Modifier.Element<T>> get(): T? {
         return processedModifier[T::class] as T?
@@ -94,7 +99,11 @@ internal class LayoutNode(
         val vertical = outset.fold(0) { vertical, modifier -> modifier.vertical + vertical }
 
         val innerConstraints =
-            layoutChangingModifiers.fold(constraints) { inner, modifier -> modifier.modifyInnerConstraints(inner) }
+            layoutChangingModifiers.fold(constraints) { inner, modifier ->
+                modifier.modifyInnerConstraints(
+                    inner
+                )
+            }
 
         val result = measurePolicy.measure(this, children, innerConstraints)
 
@@ -135,11 +144,19 @@ internal class LayoutNode(
         this.y = offset.y
     }
 
-    override fun render(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    override fun render(
+        x: Int,
+        y: Int,
+        guiGraphics: GuiGraphics,
+        mouseX: Int,
+        mouseY: Int,
+        partialTick: Float
+    ) {
         if (parent == null) guiGraphics.pose().pushPose()
 
         val dx = this.x + x
         val dy = this.y + y
+        renderModifiers.forEach { it.onRender(this, dx, dy, guiGraphics) }
         renderer.render(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
         for (child in children) {
             val matrix = guiGraphics.pose().last().pose()
@@ -148,7 +165,16 @@ internal class LayoutNode(
             guiGraphics.pose().translate(matrix.m30(), matrix.m31(), 1f)
             child.render(dx, dy, guiGraphics, mouseX, mouseY, partialTick)
         }
-        renderer.renderAfterChildren(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
+        renderer.renderAfterChildren(
+            this@LayoutNode,
+            dx,
+            dy,
+            guiGraphics,
+            mouseX,
+            mouseY,
+            partialTick
+        )
+        renderModifiers.forEach { it.onRenderAfterChildren(this, dx, dy, guiGraphics) }
 
         if (parent == null) {
             if (rootNode.debug) {
@@ -160,13 +186,29 @@ internal class LayoutNode(
         }
     }
 
-    private fun renderDebug(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    private fun renderDebug(
+        x: Int,
+        y: Int,
+        guiGraphics: GuiGraphics,
+        mouseX: Int,
+        mouseY: Int,
+        partialTick: Float
+    ) {
         val dx = this.x + x
         val dy = this.y + y
 
         val hoveredChildren = children.filter { it.isBounded(mouseX, mouseY) }
         if (hoveredChildren.isNotEmpty())
-            return hoveredChildren.forEach { it.renderDebug(dx, dy, guiGraphics, mouseX, mouseY, partialTick) }
+            return hoveredChildren.forEach {
+                it.renderDebug(
+                    dx,
+                    dy,
+                    guiGraphics,
+                    mouseX,
+                    mouseY,
+                    partialTick
+                )
+            }
 
         if (!isBounded(mouseX, mouseY)) return
 
@@ -241,13 +283,20 @@ internal class LayoutNode(
             }
         }
 
-        val lineWidths = debugLines.map { line -> line.sumOf { font.width(it) } + (line.size - 1) * columnSpacing }
+        val lineWidths =
+            debugLines.map { line -> line.sumOf { font.width(it) } + (line.size - 1) * columnSpacing }
         val maxLineWidth = lineWidths.maxOrNull()?.plus(4) ?: 0
         val debugHeight = (debugLines.size * (lineHeight + lineSpacing)) - lineSpacing + 2
 
         if (debugStartY + debugHeight > guiGraphics.guiHeight()) debugStartY -= height
 
-        guiGraphics.drawRectOutline(debugStartX, debugStartY, maxLineWidth, debugHeight, DEBUG_OUTLINE)
+        guiGraphics.drawRectOutline(
+            debugStartX,
+            debugStartY,
+            maxLineWidth,
+            debugHeight,
+            DEBUG_OUTLINE
+        )
         guiGraphics.fill(
             debugStartX,
             debugStartY,
@@ -277,7 +326,8 @@ internal class LayoutNode(
     internal companion object {
         val ChildMeasurePolicy = MeasurePolicy { scope, measurables, constraints ->
             val placeables = measurables.map { it.measure(constraints) }
-            MeasureResult(placeables.maxOfOrNull { it.width } ?: 0, placeables.maxOfOrNull { it.height } ?: 0) {
+            MeasureResult(placeables.maxOfOrNull { it.width } ?: 0,
+                placeables.maxOfOrNull { it.height } ?: 0) {
                 placeables.forEach { it.placeAt(0, 0) }
             }
         }

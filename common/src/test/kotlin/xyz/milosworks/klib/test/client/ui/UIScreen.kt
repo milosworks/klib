@@ -1,26 +1,19 @@
 package xyz.milosworks.klib.test.client.ui
 
 import androidx.compose.runtime.Composable
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.Items
-import net.minecraft.world.level.block.Blocks
 import xyz.milosworks.klib.ui.base.ComposeContainerScreen
-import xyz.milosworks.klib.ui.components.basic.Block
-import xyz.milosworks.klib.ui.components.basic.Item
-import xyz.milosworks.klib.ui.components.basic.Spacer
+import xyz.milosworks.klib.ui.components.basic.Text
+import xyz.milosworks.klib.ui.components.containers.Scrollable
 import xyz.milosworks.klib.ui.components.containers.Surface
+import xyz.milosworks.klib.ui.layout.containers.Box
 import xyz.milosworks.klib.ui.layout.containers.Column
-import xyz.milosworks.klib.ui.layout.containers.Row
-import xyz.milosworks.klib.ui.modifiers.appearance.background
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.modifiers.layout.size
 import xyz.milosworks.klib.ui.modifiers.position.inset.inset
 import xyz.milosworks.klib.ui.modifiers.position.outset.outset
-import xyz.milosworks.klib.ui.utils.KColor
 
 class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
     ComposeContainerScreen<UIMenu>(menu, inventory, title) {
@@ -31,26 +24,39 @@ class UIScreen(menu: UIMenu, inventory: Inventory, title: Component) :
         }
     }
 
+
     @Composable
     fun content() {
         Surface(modifier = Modifier.inset(10)) {
-            Row {
-                Block(
-                    Blocks.CHEST.defaultBlockState(),
-                    Minecraft.getInstance().level!!.getBlockEntity(BlockPos(-95, 74, 212)),
-                    modifier = Modifier.size(50)
-                )
-                Item(
-                    Items.DIAMOND_AXE.defaultInstance,
-                    modifier = Modifier.size(50)
-                )
-                Column(modifier = Modifier.outset(left = 10)) {
-                    Spacer(Modifier.background(KColor.GREEN).size(20))
-                    Spacer(Modifier.background(KColor.BLUE).size(20).outset(top = 10, bottom = 10))
-                    Spacer(Modifier.background(KColor.RED).size(20))
+            Box(modifier = Modifier.size(width = 100, height = 150)) {
+                Scrollable {
+                    Column {
+                        repeat(20) {
+                            Text(
+                                Component.literal("Item Number $it"),
+                                modifier = Modifier.outset(top = 2)
+                            )
+                        }
+                    }
                 }
             }
         }
+//            Row {
+//                Block(
+//                    Blocks.CHEST.defaultBlockState(),
+//                    Minecraft.getInstance().level!!.getBlockEntity(BlockPos(-95, 74, 212)),
+//                    modifier = Modifier.size(50)
+//                )
+//                Item(
+//                    Items.DIAMOND_AXE.defaultInstance,
+//                    modifier = Modifier.size(50)
+//                )
+//                Column(modifier = Modifier.outset(left = 10)) {
+//                    Spacer(Modifier.background(KColor.GREEN).size(20))
+//                    Spacer(Modifier.background(KColor.BLUE).size(20).outset(top = 10, bottom = 10))
+//                    Spacer(Modifier.background(KColor.RED).size(20))
+//                }
+//            }
     }
 
     //                Spacer(

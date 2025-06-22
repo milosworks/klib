@@ -16,7 +16,7 @@ operator fun Color.component4(): Int = alpha
  * Get the decimal representation of this color in rgb
  */
 val Color.rgb: Int
-    get() = (red * 255) shl 16 or (green * 255) shl 8 or (blue * 255)
+    get() = (red shl 16) or (green shl 8) or blue
 
 /**
  * Get the decimal representation of this color in argb
@@ -51,10 +51,10 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
          */
         fun ofArgb(argb: Long): KColor {
             return KColor(
-                (argb shr 24).toInt(),
                 (argb shr 16 and 255).toInt(),
                 (argb shr 8 and 255).toInt(),
-                (argb and 255).toInt()
+                (argb and 255).toInt(),
+                (argb shr 24).toInt()
             )
         }
 
@@ -115,7 +115,7 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
      * Get the decimal representation of this color in rgb
      */
     val rgb: Int
-        get() = (red * 255) shl 16 or (green * 255) shl 8 or (blue * 255)
+        get() = (red shl 16) or (green shl 8) or blue
 
     /**
      * Get the decimal representation of this color in argb
