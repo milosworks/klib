@@ -53,14 +53,9 @@ internal class LayoutNode(
                 if (element is LayoutChangingModifier) acc.add(element)
                 acc
             }
-            renderModifiers = modifier.foldIn(mutableListOf()) { acc, element ->
-                if (element is RenderModifier) acc.add(element)
-                acc
-            }
         }
     var processedModifier = mapOf<KClass<out Modifier.Element<*>>, Modifier.Element<*>>()
     var layoutChangingModifiers: List<LayoutChangingModifier> = emptyList()
-    var renderModifiers: List<RenderModifier> = emptyList()
 
     inline fun <reified T : Modifier.Element<T>> get(): T? {
         return processedModifier[T::class] as T?
@@ -156,7 +151,6 @@ internal class LayoutNode(
 
         val dx = this.x + x
         val dy = this.y + y
-        renderModifiers.forEach { it.onRender(this, dx, dy, guiGraphics) }
         renderer.render(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
         for (child in children) {
             val matrix = guiGraphics.pose().last().pose()
@@ -174,7 +168,6 @@ internal class LayoutNode(
             mouseY,
             partialTick
         )
-        renderModifiers.forEach { it.onRenderAfterChildren(this, dx, dy, guiGraphics) }
 
         if (parent == null) {
             if (rootNode.debug) {
