@@ -161,104 +161,99 @@ fun Scrollable(
         }
     }
 
-    val renderer =
-        remember(direction, scrollbarColor, state) {
-            object : Renderer {
-                override fun render(
-                    node: UINode,
-                    x: Int,
-                    y: Int,
-                    guiGraphics: GuiGraphics,
-                    mouseX: Int,
-                    mouseY: Int,
-                    partialTick: Float
-                ) {
-                    // enable a clipping rectangle that matches the bounds of this Scrollable container
-                    // all child drawing that happens after this will be clipped to this area
-                    guiGraphics.enableScissor(
-                        x,
-                        y,
-                        x + node.width,
-                        y + node.height
-                    )
-                }
+    Layout(
+        measurePolicy = measurePolicy,
+        renderer = object : Renderer {
+            override fun render(
+                node: UINode,
+                x: Int,
+                y: Int,
+                guiGraphics: GuiGraphics,
+                mouseX: Int,
+                mouseY: Int,
+                partialTick: Float
+            ) {
+                // enable a clipping rectangle that matches the bounds of this Scrollable container
+                // all child drawing that happens after this will be clipped to this area
+                guiGraphics.enableScissor(
+                    x,
+                    y,
+                    x + node.width,
+                    y + node.height
+                )
+            }
 
-                override fun renderAfterChildren(
-                    node: UINode,
-                    x: Int,
-                    y: Int,
-                    guiGraphics: GuiGraphics,
-                    mouseX: Int,
-                    mouseY: Int,
-                    partialTick: Float
-                ) {
-                    // smooth scrolling animation
-                    state.currentScrollPosition += (state.scrollOffset - state.currentScrollPosition) * 0.4 * partialTick
+            override fun renderAfterChildren(
+                node: UINode,
+                x: Int,
+                y: Int,
+                guiGraphics: GuiGraphics,
+                mouseX: Int,
+                mouseY: Int,
+                partialTick: Float
+            ) {
+                // smooth scrolling animation
+                state.currentScrollPosition += (state.scrollOffset - state.currentScrollPosition) * 0.4 * partialTick
 
-                    // draw the scrollbar (it will also be clipped by the scissor test) this will be replaced by a texture
-                    if (state.maxScroll > 0) {
-                        val timeSinceInteract =
-                            System.currentTimeMillis() - state.lastInteractTime
-                        if (!(timeSinceInteract > SCROLLBAR_FADE_DURATION_MS && !state.isDraggingScrollbar)) {
-                            val fadeAlpha =
-                                if (state.isDraggingScrollbar) 1f else 1f - (timeSinceInteract.toFloat() / SCROLLBAR_FADE_DURATION_MS)
-                            val alpha = Mth.clamp(
-                                (fadeAlpha * scrollbarColor.alpha).toInt(),
-                                0,
-                                255
+                // draw the scrollbar (it will also be clipped by the scissor test) this will be replaced by a texture
+                if (state.maxScroll > 0) {
+                    val timeSinceInteract =
+                        System.currentTimeMillis() - state.lastInteractTime
+                    if (!(timeSinceInteract > SCROLLBAR_FADE_DURATION_MS && !state.isDraggingScrollbar)) {
+                        val fadeAlpha =
+                            if (state.isDraggingScrollbar) 1f else 1f - (timeSinceInteract.toFloat() / SCROLLBAR_FADE_DURATION_MS)
+                        val alpha = Mth.clamp(
+                            (fadeAlpha * scrollbarColor.alpha).toInt(),
+                            0,
+                            255
+                        )
+                        if (alpha > 0) {
+                            val colorWithAlpha =
+                                (scrollbarColor.rgb) or (alpha shl 24)
+                            val trackSize =
+                                state.containerSize
+                            val thumbSize = max(
+                                MIN_SCROLLBAR_THUMB_SIZE,
+                                (trackSize.toFloat() / state.childSize * trackSize).toInt()
                             )
-                            if (alpha > 0) {
-                                val colorWithAlpha =
-                                    (scrollbarColor.rgb) or (alpha shl 24)
-                                val trackSize =
-                                    state.containerSize
-                                val thumbSize = max(
-                                    MIN_SCROLLBAR_THUMB_SIZE,
-                                    (trackSize.toFloat() / state.childSize * trackSize).toInt()
-                                )
-                                val scrollPercentage =
-                                    if (state.maxScroll > 0) state.currentScrollPosition / state.maxScroll else 0.0
-                                val thumbPosition =
-                                    scrollPercentage * (trackSize - thumbSize)
+                            val scrollPercentage =
+                                if (state.maxScroll > 0) state.currentScrollPosition / state.maxScroll else 0.0
+                            val thumbPosition =
+                                scrollPercentage * (trackSize - thumbSize)
 
-                                if (direction == ScrollDirection.VERTICAL) {
-                                    val thumbX =
-                                        x + node.width - SCROLLBAR_THICKNESS
-                                    val thumbY =
-                                        y + thumbPosition.roundToInt()
-                                    guiGraphics.fill(
-                                        thumbX,
-                                        thumbY,
-                                        thumbX + SCROLLBAR_THICKNESS,
-                                        thumbY + thumbSize,
-                                        colorWithAlpha
-                                    )
-                                } else {
-                                    val thumbX =
-                                        x + thumbPosition.roundToInt()
-                                    val thumbY =
-                                        y + node.height - SCROLLBAR_THICKNESS
-                                    guiGraphics.fill(
-                                        thumbX,
-                                        thumbY,
-                                        thumbX + thumbSize,
-                                        thumbY + SCROLLBAR_THICKNESS,
-                                        colorWithAlpha
-                                    )
-                                }
+                            if (direction == ScrollDirection.VERTICAL) {
+                                val thumbX =
+                                    x + node.width - SCROLLBAR_THICKNESS
+                                val thumbY =
+                                    y + thumbPosition.roundToInt()
+                                guiGraphics.fill(
+                                    thumbX,
+                                    thumbY,
+                                    thumbX + SCROLLBAR_THICKNESS,
+                                    thumbY + thumbSize,
+                                    colorWithAlpha
+                                )
+                            } else {
+                                val thumbX =
+                                    x + thumbPosition.roundToInt()
+                                val thumbY =
+                                    y + node.height - SCROLLBAR_THICKNESS
+                                guiGraphics.fill(
+                                    thumbX,
+                                    thumbY,
+                                    thumbX + thumbSize,
+                                    thumbY + SCROLLBAR_THICKNESS,
+                                    colorWithAlpha
+                                )
                             }
                         }
                     }
-
-                    // IMPORTANT: disable the scissor test so that other UI elements outside this container can be rendered correctly.
-                    guiGraphics.disableScissor()
                 }
-            }
-        }
 
-    Layout(
-        measurePolicy = measurePolicy,
-        renderer = renderer,
+                // IMPORTANT: disable the scissor test so that other UI elements outside this container can be rendered correctly.
+                guiGraphics.disableScissor()
+            }
+        },
         modifier = modifier
             .onScroll { _, event ->
                 state.scrollBy(-event.scrollY * SCROLL_SENSITIVITY)
