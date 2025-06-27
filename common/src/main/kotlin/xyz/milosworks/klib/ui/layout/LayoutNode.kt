@@ -149,10 +149,6 @@ internal class LayoutNode(
     ) {
         if (parent == null) guiGraphics.pose().pushPose()
 
-        if (nodeName === "Column") {
-            println("this.x: ${this.x}, this.y: ${this.y}, x: $x, y: $y")
-        }
-
         val dx = this.x + x
         val dy = this.y + y
         renderer.render(this@LayoutNode, dx, dy, guiGraphics, mouseX, mouseY, partialTick)
