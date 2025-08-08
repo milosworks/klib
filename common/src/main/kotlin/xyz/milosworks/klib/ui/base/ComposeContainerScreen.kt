@@ -9,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
+import org.lwjgl.glfw.GLFW
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.containers.Box
 import xyz.milosworks.klib.ui.layout.primitive.Alignment
@@ -94,6 +94,11 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     }
 
     override fun onClose() {
+        GLFW.glfwSetCursor(
+            minecraft!!.window.window,
+            GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR)
+        )
+
         super.onClose()
         recomposer.close()
         snapshotHandle.dispose()
@@ -125,26 +130,70 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
             mouseX,
             mouseY,
             PointerEventType.ENTER
-        ) { it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         processPointerEvent(
             rootNode,
             mouseX,
             mouseY,
             PointerEventType.EXIT
-        ) { !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         lastMouseX = mouseX
         lastMouseY = mouseY
     }
 
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
-        val event = processScrollEvent(rootNode, mouseX, mouseY, scrollX, scrollY)
+    override fun mouseScrolled(
+        mouseX: Double,
+        mouseY: Double,
+        scrollX: Double,
+        scrollY: Double
+    ): Boolean {
+        processScrollEvent(
+            rootNode,
+            mouseX,
+            mouseY,
+            scrollX,
+            scrollY,
+            PointerEventType.GLOBAL_PRESS,
+            true
+        )
+
+        val event =
+            processScrollEvent(rootNode, mouseX, mouseY, scrollX, scrollY, PointerEventType.SCROLL)
         return event.bypassSuper || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
     }
 
-    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
-        val event = processDragEvent(rootNode, mouseX, mouseY, button, dragX, dragY)
+    override fun mouseDragged(
+        mouseX: Double,
+        mouseY: Double,
+        button: Int,
+        dragX: Double,
+        dragY: Double
+    ): Boolean {
+        processDragEvent(
+            rootNode,
+            mouseX,
+            mouseY,
+            button,
+            dragX,
+            dragY,
+            PointerEventType.GLOBAL_DRAG,
+            true
+        )
+
+        val event =
+            processDragEvent(rootNode, mouseX, mouseY, button, dragX, dragY, PointerEventType.DRAG)
         return event.bypassSuper || super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
     }
 
@@ -152,7 +201,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
         // CTRL + SHIFT
         // CTRL is detected as modifier 3
         // SHIFT is the detected key
-        if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
+        if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug =
+            (rootNode.debug == false)
         if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
 
         val event = processKeyEvent(rootNode, keyCode, scanCode, modifiers)

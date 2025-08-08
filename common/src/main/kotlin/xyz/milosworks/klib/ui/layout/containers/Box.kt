@@ -57,7 +57,8 @@ internal data class BoxMeasurePolicy(
         height: Int
     ): MeasureResult {
         return MeasureResult(width, height) {
-            val inset = (scope as? LayoutNode)?.modifier?.get<InsetModifier>()?.inset ?: InsetValues()
+            val inset =
+                (scope as? LayoutNode)?.modifier?.get<InsetModifier>()?.inset ?: InsetValues()
             for (child in placeables) {
                 child.placeAt(
                     alignment.align(

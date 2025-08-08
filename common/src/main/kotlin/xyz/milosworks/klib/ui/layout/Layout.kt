@@ -2,8 +2,8 @@ package xyz.milosworks.klib.ui.layout
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ComposeNode
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
+import xyz.milosworks.klib.ui.base.UINode
+import xyz.milosworks.klib.ui.base.UINodeApplier
 import xyz.milosworks.klib.ui.layout.measure.MeasurePolicy
 import xyz.milosworks.klib.ui.layout.measure.Renderer
 import xyz.milosworks.klib.ui.modifiers.core.Modifier

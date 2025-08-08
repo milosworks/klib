@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.base.ui1.nodes
+package xyz.milosworks.klib.ui.base
 
 import androidx.compose.runtime.AbstractApplier
 import xyz.milosworks.klib.ui.layout.LayoutNode

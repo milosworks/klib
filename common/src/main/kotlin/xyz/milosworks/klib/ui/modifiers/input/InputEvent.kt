@@ -31,19 +31,21 @@ class BasicPointerEvent(
 ) : PointerEvent(type, mouseX, mouseY)
 
 class ScrollEvent(
+    type: PointerEventType = PointerEventType.SCROLL,
     mouseX: Double,
     mouseY: Double,
     val scrollX: Double,
     val scrollY: Double,
-) : PointerEvent(PointerEventType.SCROLL, mouseX, mouseY)
+) : PointerEvent(type, mouseX, mouseY)
 
 class DragEvent(
+    type: PointerEventType = PointerEventType.DRAG,
     mouseX: Double,
     mouseY: Double,
     val button: Int,
     val dragX: Double,
     val dragY: Double,
-) : PointerEvent(PointerEventType.DRAG, mouseX, mouseY)
+) : PointerEvent(type, mouseX, mouseY)
 
 data class KeyEvent(
     val keyCode: Int,

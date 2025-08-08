@@ -13,31 +13,32 @@ import xyz.milosworks.klib.test.init.TMenus
 
 /** @suppress supress for dokka */
 object KTest {
-	const val ID = "${KLib.ID}_test"
+    const val ID = "${KLib.ID}_test"
 
-	@JvmField
-	val MOD: Mod = Platform.getMod(ID)
+    @JvmField
+    val MOD: Mod = Platform.getMod(ID)
 
-	@JvmField
-	val LOGGER: Logger = LogUtils.getLogger()
+    @JvmField
+    val LOGGER: Logger = LogUtils.getLogger()
 
-	@JvmStatic
-	operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ID, path)
+    @JvmStatic
+    operator fun get(path: String): ResourceLocation =
+        ResourceLocation.fromNamespaceAndPath(ID, path)
 
-	@JvmStatic
-	fun init() {
-		TBlocks.init()
-		TChannels.init()
-		TCreativeTabs.init()
-		TMenus.init()
-	}
+    @JvmStatic
+    fun init() {
+        TBlocks.init()
+        TChannels.init()
+        TCreativeTabs.init()
+        TMenus.init()
+    }
 
-	@JvmStatic
-	fun initClient() {
-		TMenus.initClient()
-	}
+    @JvmStatic
+    fun initClient() {
+        TMenus.initClient()
+    }
 
-	@JvmStatic
-	fun initCommon() {
-	}
+    @JvmStatic
+    fun initCommon() {
+    }
 }

@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.components.theme
+package xyz.milosworks.klib.ui.composables.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -7,11 +7,6 @@ import androidx.compose.runtime.compositionLocalOf
 import net.minecraft.resources.ResourceLocation
 import xyz.milosworks.klib.KLib
 import xyz.milosworks.klib.ui.utils.ComposableTheme
-
-object ThemeTypes {
-    const val JAVA = "java"
-    const val BEDROCK = "bedrock"
-}
 
 object ThemeVariants {
     const val DEFAULT = ""
@@ -29,7 +24,7 @@ data class ThemeData(
         ComposableTheme.Companion[composableThemeLocation(namespace, type, composable)]
 }
 
-val LocalTheme = compositionLocalOf { ThemeData(ThemeVariants.DEFAULT, ThemeTypes.JAVA, KLib.ID) }
+val LocalTheme = compositionLocalOf { ThemeData(ThemeVariants.DEFAULT, "java", KLib.ID) }
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun composableThemeLocation(
@@ -42,7 +37,7 @@ inline fun composableThemeLocation(
 @Composable
 fun Theme(
     mode: String = ThemeVariants.DEFAULT,
-    type: String = ThemeTypes.JAVA,
+    type: String = "java",
     namespace: String = KLib.ID,
     content: @Composable () -> Unit
 ) =

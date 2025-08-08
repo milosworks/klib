@@ -35,7 +35,8 @@ data class HorizontalFillModifier(
     override fun mergeWith(other: HorizontalFillModifier) = other
 
     override fun modifyInnerConstraints(constraints: Constraints): Constraints {
-        val fillWidth = (constraints.minWidth + percent * (constraints.maxWidth - constraints.minWidth)).roundToInt()
+        val fillWidth =
+            (constraints.minWidth + percent * (constraints.maxWidth - constraints.minWidth)).roundToInt()
         return constraints.copy(
             minWidth = fillWidth,
             maxWidth = fillWidth

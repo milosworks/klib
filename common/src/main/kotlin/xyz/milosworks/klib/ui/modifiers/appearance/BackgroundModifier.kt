@@ -65,7 +65,8 @@ data class BackgroundModifier(
  * @param color The color to fill the background.
  */
 @Stable
-fun Modifier.background(color: KColor): Modifier = this then BackgroundModifier(color.argb, color.argb)
+fun Modifier.background(color: KColor): Modifier =
+    this then BackgroundModifier(color.argb, color.argb)
 
 /**
  * Applies a gradient background to a composable.

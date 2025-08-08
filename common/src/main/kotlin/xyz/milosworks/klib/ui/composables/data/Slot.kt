@@ -1,12 +1,12 @@
-package xyz.milosworks.klib.ui.components.data
+package xyz.milosworks.klib.ui.composables.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import net.minecraft.client.gui.GuiGraphics
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
-import xyz.milosworks.klib.ui.components.theme.LocalTheme
-import xyz.milosworks.klib.ui.components.theme.TextureStates
+import xyz.milosworks.klib.ui.base.UINode
+import xyz.milosworks.klib.ui.composables.theme.LocalTheme
+import xyz.milosworks.klib.ui.composables.theme.TextureStates
 import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.containers.Box
@@ -52,7 +52,7 @@ fun Slots(
     data.groups[id] = group
 
     Box(
-        Modifier.onGloballyPositioned { coordinates ->
+        modifier = Modifier.onGloballyPositioned { coordinates ->
             val (x, y) = coordinates
             group.x = x
             group.y = y
@@ -74,7 +74,12 @@ fun Slot(texture: String = "slot", modifier: Modifier = Modifier) {
     val state = composableTheme.getState(TextureStates.DEFAULT, theme.mode)
 
     Layout(
-        measurePolicy = { _, _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
+        measurePolicy = { _, _, constraints ->
+            MeasureResult(
+                constraints.minWidth,
+                constraints.minHeight
+            ) {}
+        },
         renderer = object : DefaultRenderer() {
             override fun render(
                 node: UINode,

@@ -1,11 +1,11 @@
-package xyz.milosworks.klib.ui.components.containers
+package xyz.milosworks.klib.ui.composables.containers
 
 import androidx.compose.runtime.*
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.util.Mth
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.measure.*
 import xyz.milosworks.klib.ui.modifiers.core.Constraints
@@ -173,8 +173,6 @@ fun Scrollable(
                 mouseY: Int,
                 partialTick: Float
             ) {
-                // enable a clipping rectangle that matches the bounds of this Scrollable container
-                // all child drawing that happens after this will be clipped to this area
                 guiGraphics.enableScissor(
                     x,
                     y,
@@ -255,11 +253,11 @@ fun Scrollable(
             }
         },
         modifier = modifier
-            .onScroll { _, event ->
+            .onScroll<UINode> { _, event ->
                 state.scrollBy(-event.scrollY * SCROLL_SENSITIVITY)
                 event.consume()
             }
-            .onPointerEvent(PointerEventType.PRESS) { node, event ->
+            .onPointerEvent<UINode>(PointerEventType.PRESS) { node, event ->
                 val (mouseX, mouseY) = event.mouseX to event.mouseY
                 val (nodeX, nodeY) = node.x to node.y
 
@@ -286,10 +284,10 @@ fun Scrollable(
                     event.consume()
                 }
             }
-            .onPointerEvent(PointerEventType.GLOBAL_RELEASE) { _, _ ->
+            .onPointerEvent<UINode>(PointerEventType.GLOBAL_RELEASE) { _, _ ->
                 state.isDraggingScrollbar = false
             }
-            .onDrag { _, event ->
+            .onDrag<UINode> { _, event ->
                 if (!state.isDraggingScrollbar) return@onDrag
 
                 val pixelDelta = direction.choose(

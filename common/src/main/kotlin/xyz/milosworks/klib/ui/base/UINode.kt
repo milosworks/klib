@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.base.ui1.nodes
+package xyz.milosworks.klib.ui.base
 
 import net.minecraft.client.gui.GuiGraphics
 import xyz.milosworks.klib.ui.layout.LayoutNode
@@ -15,7 +15,14 @@ interface UINode {
     var x: Int
     var y: Int
 
-    fun render(x: Int, y: Int, guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float)
+    fun render(
+        x: Int,
+        y: Int,
+        guiGraphics: GuiGraphics,
+        mouseX: Int,
+        mouseY: Int,
+        partialTick: Float
+    )
 
     companion object {
         fun Constructor(nodeName: String): () -> UINode = { LayoutNode(nodeName) }

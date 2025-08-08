@@ -1,11 +1,11 @@
-package xyz.milosworks.klib.ui.components.basic
+package xyz.milosworks.klib.ui.composables.basic
 
 import androidx.compose.runtime.Composable
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.measure.MeasureResult
@@ -16,7 +16,11 @@ import xyz.milosworks.klib.ui.modifiers.layout.sizeIn
 /**
  * Returns a Pair with the width and height of a text.
  */
-fun getTextSize(text: Component, scale: Float = 1f, font: Font = Minecraft.getInstance().font): Size =
+fun getTextSize(
+    text: Component,
+    scale: Float = 1f,
+    font: Font = Minecraft.getInstance().font
+): Size =
     Size((font.width(text) * scale).toInt(), (font.lineHeight * scale).toInt())
 
 
@@ -45,7 +49,12 @@ fun Text(
     modifier: Modifier = Modifier
 ) {
     Layout(
-        measurePolicy = { _, _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
+        measurePolicy = { _, _, constraints ->
+            MeasureResult(
+                constraints.minWidth,
+                constraints.minHeight
+            ) {}
+        },
         renderer = object : DefaultRenderer() {
             override fun render(
                 node: UINode,

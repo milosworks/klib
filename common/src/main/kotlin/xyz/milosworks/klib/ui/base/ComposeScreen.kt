@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.containers.Box
 import xyz.milosworks.klib.ui.layout.primitive.Alignment
@@ -15,9 +14,7 @@ import xyz.milosworks.klib.ui.modifiers.core.Constraints
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.modifiers.input.PointerEventType
 import xyz.milosworks.klib.ui.modifiers.layout.fillMaxSize
-import xyz.milosworks.klib.ui.utils.extensions.processCharEvent
-import xyz.milosworks.klib.ui.utils.extensions.processKeyEvent
-import xyz.milosworks.klib.ui.utils.extensions.processPointerEvent
+import xyz.milosworks.klib.ui.utils.extensions.*
 import kotlin.coroutines.CoroutineContext
 
 val LocalScreen: ProvidableCompositionLocal<ComposeScreen> =
@@ -116,28 +113,79 @@ abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
             mouseX,
             mouseY,
             PointerEventType.ENTER
-        ) { it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         processPointerEvent(
             rootNode,
             mouseX,
             mouseY,
             PointerEventType.EXIT
-        ) { !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         lastMouseX = mouseX
         lastMouseY = mouseY
     }
 
-    // TODO: Add scrollX and scrollY to event data
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
-        val event = processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.SCROLL)
+    override fun mouseScrolled(
+        mouseX: Double,
+        mouseY: Double,
+        scrollX: Double,
+        scrollY: Double
+    ): Boolean {
+        processScrollEvent(
+            rootNode,
+            mouseX,
+            mouseY,
+            scrollX,
+            scrollY,
+            PointerEventType.GLOBAL_PRESS,
+            true
+        )
 
+        val event =
+            processScrollEvent(rootNode, mouseX, mouseY, scrollX, scrollY, PointerEventType.SCROLL)
         return event.bypassSuper || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
     }
 
+    override fun mouseDragged(
+        mouseX: Double,
+        mouseY: Double,
+        button: Int,
+        dragX: Double,
+        dragY: Double
+    ): Boolean {
+        processDragEvent(
+            rootNode,
+            mouseX,
+            mouseY,
+            button,
+            dragX,
+            dragY,
+            PointerEventType.GLOBAL_DRAG,
+            true
+        )
+
+        val event =
+            processDragEvent(rootNode, mouseX, mouseY, button, dragX, dragY, PointerEventType.DRAG)
+        return event.bypassSuper || super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
+    }
+
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
+        // CTRL + SHIFT
+        // CTRL is detected as modifier 3
+        // SHIFT is the detected key
+        if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug =
+            (rootNode.debug == false)
         if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
 
         val event = processKeyEvent(rootNode, keyCode, scanCode, modifiers)

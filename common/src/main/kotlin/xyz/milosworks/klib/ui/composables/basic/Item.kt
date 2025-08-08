@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.components.basic
+package xyz.milosworks.klib.ui.composables.basic
 
 import androidx.compose.runtime.*
 import com.mojang.blaze3d.platform.Lighting
@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.joml.Matrix4f
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.measure.MeasureResult
 import xyz.milosworks.klib.ui.layout.measure.Renderer
@@ -52,7 +52,12 @@ fun Item(
     }
 
     Layout(
-        measurePolicy = { _, _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
+        measurePolicy = { _, _, constraints ->
+            MeasureResult(
+                constraints.minWidth,
+                constraints.minHeight
+            ) {}
+        },
         renderer = object : Renderer {
             override fun render(
                 node: UINode,
@@ -63,7 +68,9 @@ fun Item(
                 mouseY: Int,
                 partialTick: Float
             ) {
-                val usesBlockLight = Minecraft.getInstance().itemRenderer.getModel(item, null, null, 0).usesBlockLight()
+                val usesBlockLight =
+                    Minecraft.getInstance().itemRenderer.getModel(item, null, null, 0)
+                        .usesBlockLight()
                 if (!usesBlockLight) {
                     Lighting.setupForFlatItems()
                 }
@@ -83,9 +90,14 @@ fun Item(
                 }
 
                 Minecraft.getInstance().itemRenderer.renderStatic(
-                    item, ItemDisplayContext.GUI, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, stack,
+                    item,
+                    ItemDisplayContext.GUI,
+                    LightTexture.FULL_BRIGHT,
+                    OverlayTexture.NO_OVERLAY,
+                    stack,
                     Minecraft.getInstance().renderBuffers().bufferSource(),
-                    Minecraft.getInstance().level, 0
+                    Minecraft.getInstance().level,
+                    0
                 )
                 Minecraft.getInstance().renderBuffers().bufferSource().endBatch()
 
@@ -105,7 +117,7 @@ fun Item(
             }
         },
         modifier = modifier.debug("Item: ${item.item}")
-            .onPointerEvent(PointerEventType.ENTER) { _, _ -> hovered = true }
-            .onPointerEvent(PointerEventType.EXIT) { _, _ -> hovered = false }
+            .onPointerEvent<UINode>(PointerEventType.ENTER) { _, _ -> hovered = true }
+            .onPointerEvent<UINode>(PointerEventType.EXIT) { _, _ -> hovered = false }
     )
 }

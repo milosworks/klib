@@ -3,7 +3,7 @@ package xyz.milosworks.klib.ui.layout
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.measure.*
 import xyz.milosworks.klib.ui.layout.primitive.IntCoordinates
 import xyz.milosworks.klib.ui.layout.primitive.IntOffset
@@ -68,7 +68,7 @@ internal class LayoutNode(
     override var x: Int = 0
     override var y: Int = 0
 
-    private val absoluteCoords: IntCoordinates
+    val absoluteCoords: IntCoordinates
         get() {
             var coordinates = IntCoordinates(this.x, this.y)
             var parent = this.parent

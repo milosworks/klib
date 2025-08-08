@@ -1,8 +1,8 @@
-package xyz.milosworks.klib.ui.components.basic
+package xyz.milosworks.klib.ui.composables.basic
 
 import androidx.compose.runtime.Composable
 import net.minecraft.client.gui.GuiGraphics
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.measure.MeasureResult
 import xyz.milosworks.klib.ui.layout.measure.Renderer
@@ -13,7 +13,12 @@ fun Entity(
     modifier: Modifier = Modifier
 ) {
     Layout(
-        measurePolicy = { _, _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
+        measurePolicy = { _, _, constraints ->
+            MeasureResult(
+                constraints.minWidth,
+                constraints.minHeight
+            ) {}
+        },
         renderer = object : Renderer {
             override fun render(
                 node: UINode,

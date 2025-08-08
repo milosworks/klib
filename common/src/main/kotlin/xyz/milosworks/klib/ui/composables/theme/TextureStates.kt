@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.components.theme
+package xyz.milosworks.klib.ui.composables.theme
 
 object TextureStates {
     const val DEFAULT = "default"

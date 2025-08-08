@@ -1,4 +1,4 @@
-package xyz.milosworks.klib.ui.components.basic
+package xyz.milosworks.klib.ui.composables.basic
 
 import androidx.compose.runtime.Composable
 import com.mojang.blaze3d.platform.Lighting
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3f
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.measure.MeasureResult
 import xyz.milosworks.klib.ui.layout.measure.Renderer
@@ -27,7 +27,12 @@ fun Block(
     modifier: Modifier = Modifier
 ) {
     Layout(
-        measurePolicy = { _, _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
+        measurePolicy = { _, _, constraints ->
+            MeasureResult(
+                constraints.minWidth,
+                constraints.minHeight
+            ) {}
+        },
         renderer = object : Renderer {
             override fun render(
                 node: UINode,
@@ -59,14 +64,15 @@ fun Block(
                     }
 
                     if (entity != null) {
-                        Minecraft.getInstance().blockEntityRenderDispatcher.getRenderer(entity)?.render(
-                            entity,
-                            partialTick,
-                            guiGraphics.pose(),
-                            consumers,
-                            LightTexture.FULL_BRIGHT,
-                            OverlayTexture.NO_OVERLAY
-                        )
+                        Minecraft.getInstance().blockEntityRenderDispatcher.getRenderer(entity)
+                            ?.render(
+                                entity,
+                                partialTick,
+                                guiGraphics.pose(),
+                                consumers,
+                                LightTexture.FULL_BRIGHT,
+                                OverlayTexture.NO_OVERLAY
+                            )
                     }
 
                     RenderSystem.setShaderLights(Vector3f(-1.5f, -.5f, 0f), Vector3f(0f, -1f, 0f))

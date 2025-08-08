@@ -1,11 +1,11 @@
-package xyz.milosworks.klib.ui.components.containers
+package xyz.milosworks.klib.ui.composables.containers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import net.minecraft.client.gui.GuiGraphics
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
-import xyz.milosworks.klib.ui.components.theme.LocalTheme
-import xyz.milosworks.klib.ui.components.theme.TextureStates
+import xyz.milosworks.klib.ui.base.UINode
+import xyz.milosworks.klib.ui.composables.theme.LocalTheme
+import xyz.milosworks.klib.ui.composables.theme.TextureStates
 import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.containers.BoxMeasurePolicy
