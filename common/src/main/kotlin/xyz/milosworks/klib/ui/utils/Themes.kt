@@ -12,7 +12,7 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener
 import net.minecraft.util.profiling.ProfilerFiller
 import xyz.milosworks.klib.KLib
 import xyz.milosworks.klib.serialization.serializers.SResourceLocation
-import xyz.milosworks.klib.ui.components.theme.TextureStates
+import xyz.milosworks.klib.ui.composables.theme.TextureStates
 import xyz.milosworks.klib.ui.layout.primitive.Size
 
 @Serializable
@@ -66,22 +66,24 @@ data class ComposableTheme(
 ) {
     companion object {
         operator fun get(loc: ResourceLocation): ComposableTheme =
-            ThemeResourceListener.COMPOSABLES[loc] ?: throw IllegalStateException("No theme found for composable: $loc")
+            ThemeResourceListener.COMPOSABLES[loc]
+                ?: throw IllegalStateException("No theme found for composable: $loc")
     }
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun getState(stateName: String, variantName: String): ThemeState =
-        variants[variantName]?.states[stateName] ?: states[stateName] ?: states[TextureStates.DEFAULT]!!
+        variants[variantName]?.states[stateName] ?: states[stateName]
+        ?: states[TextureStates.DEFAULT]!!
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun hasState(stateName: String, variantName: String?): Boolean =
         (variantName?.let { variants[it] }?.states[stateName] ?: states[stateName]) != null
 }
 
-
 // REMEMBER: SimpleJsonResourceReloadListener expects a type in 1.21.4 in this case being NinePatchTexture
 
-class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_themes"), PreparableReloadListener {
+class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_themes"),
+    PreparableReloadListener {
     companion object {
         internal val COMPOSABLES = mutableMapOf<ResourceLocation, ComposableTheme>()
     }
@@ -102,8 +104,9 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                 val defaultObj = statesObj["default"].asJsonObject
                 if (defaultObj !is JsonObject) throw IllegalStateException("Theme must have a valid \"default\" state object: $location")
 
-                val defaultState = if (isNinepatch) parseNinePatchState(location, "default", defaultObj)
-                else parseSimpleState(location, "default", defaultObj)
+                val defaultState =
+                    if (isNinepatch) parseNinePatchState(location, "default", defaultObj)
+                    else parseSimpleState(location, "default", defaultObj)
 
                 val states = mutableMapOf<String, ThemeState>()
                 for ((stateName, stateObj) in statesObj.entrySet()) {
@@ -114,7 +117,12 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                         stateName,
                         stateObj,
                         defaultState as NinePatchThemeState
-                    ) else parseSimpleState(location, stateName, stateObj, defaultState as SimpleThemeState)
+                    ) else parseSimpleState(
+                        location,
+                        stateName,
+                        stateObj,
+                        defaultState as SimpleThemeState
+                    )
                 }
 
                 val variantsObj = el["variants"]?.asJsonObject
@@ -132,7 +140,12 @@ class ThemeResourceListener : SimpleJsonResourceReloadListener(Gson(), "klib_the
                                 stateName,
                                 statesObj,
                                 defaultState as NinePatchThemeState
-                            ) else parseSimpleState(location, stateName, stateObj, defaultState as SimpleThemeState)
+                            ) else parseSimpleState(
+                                location,
+                                stateName,
+                                stateObj,
+                                defaultState as SimpleThemeState
+                            )
                         }
 
                         variants[variantName] = StatefulTheme(variantStates)

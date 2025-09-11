@@ -4,6 +4,53 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import xyz.milosworks.klib.ui.utils.NinePatchThemeState
+import xyz.milosworks.klib.ui.utils.SimpleThemeState
+import xyz.milosworks.klib.ui.utils.ThemeState
+
+/**
+ * Draws a ThemeState to the screen, automatically handling whether it's a
+ * NinePatch or a Simple texture state.
+ *
+ * @param state The ThemeState object containing all rendering information.
+ * @param x The x-coordinate to draw the component at.
+ * @param y The y-coordinate to draw the component at.
+ * @param width The width of the component. For a SimpleThemeState, this is ignored.
+ * @param height The height of the component. For a SimpleThemeState, this is ignored.
+ */
+fun GuiGraphics.drawThemeState(state: ThemeState, x: Int, y: Int, width: Int, height: Int) {
+    when (state) {
+        is NinePatchThemeState -> {
+            ninePatchTexture(x, y, width, height, state)
+        }
+
+        is SimpleThemeState -> {
+            blit(state, x, y)
+        }
+    }
+}
+
+/**
+ * A helper extension to blit a SimpleThemeState without manually extracting all its properties.
+ *
+ * @param state The SimpleThemeState to draw.
+ * @param x The x-coordinate to draw at.
+ * @param y The y-coordinate to draw at.
+ */
+fun GuiGraphics.blit(state: SimpleThemeState, x: Int, y: Int) {
+    this.blit(
+        state.texture,
+        x,
+        y,
+        state.width,
+        state.height,
+        state.u.toFloat(),
+        state.v.toFloat(),
+        state.uWidth,
+        state.vHeight,
+        state.textureSize.width,
+        state.textureSize.height
+    )
+}
 
 /**
  * Draws a rectangle gradient on the GUI.
@@ -26,7 +73,17 @@ fun GuiGraphics.fillGradient(
     topRightColor: Int,
     bottomLeftColor: Int,
     bottomRightColor: Int
-) = fillGradient(RenderType.gui(), x, y, width, height, topLeftColor, topRightColor, bottomLeftColor, bottomRightColor)
+) = fillGradient(
+    RenderType.gui(),
+    x,
+    y,
+    width,
+    height,
+    topLeftColor,
+    topRightColor,
+    bottomLeftColor,
+    bottomRightColor
+)
 
 /**
  * Draws a rectangle gradient on the GUI.
@@ -70,8 +127,15 @@ fun GuiGraphics.fillGradient(
  * @param height The height of the rectangle in pixels.
  * @param color The ARGB colour of the rectangle's outline.
  */
-fun GuiGraphics.drawRectOutline(x: Int, y: Int, width: Int, height: Int, color: Int) =
-    drawRectOutline(RenderType.gui(), x, y, width, height, color)
+fun GuiGraphics.drawRectOutline(
+    x: Int,
+    y: Int,
+    width: Int,
+    height: Int,
+    color: Int,
+    thickness: Int = 1
+) =
+    drawRectOutline(RenderType.gui(), x, y, width, height, color, thickness)
 
 /**
  * Draws a rectangle outline on the GUI with a specified render type.
@@ -83,12 +147,20 @@ fun GuiGraphics.drawRectOutline(x: Int, y: Int, width: Int, height: Int, color: 
  * @param height The height of the rectangle in pixels.
  * @param color The ARGB colour of the rectangle's outline.
  */
-fun GuiGraphics.drawRectOutline(type: RenderType, x: Int, y: Int, width: Int, height: Int, color: Int) {
-    fill(type, x, y, x + width, y + 1, color)
-    fill(type, x, y + height - 1, x + width, y + height, color)
+fun GuiGraphics.drawRectOutline(
+    type: RenderType,
+    x: Int,
+    y: Int,
+    width: Int,
+    height: Int,
+    color: Int,
+    thickness: Int = 1
+) {
+    fill(type, x, y, x + width, y + thickness, color)
+    fill(type, x, y + height - thickness, x + width, y + height, color)
 
-    fill(type, x, y + 1, x + 1, y + height - 1, color)
-    fill(type, x + width - 1, y + 1, x + width, y + height - 1, color)
+    fill(type, x, y + thickness, x + thickness, y + height - thickness, color)
+    fill(type, x + width - thickness, y + thickness, x + width, y + height - thickness, color)
 }
 
 // REMEMBER: blit() requires a renderType on 1.21.4
@@ -104,7 +176,13 @@ fun GuiGraphics.drawRectOutline(type: RenderType, x: Int, y: Int, width: Int, he
  * @param height The height of the texture in pixels.
  * @param loc The [ResourceLocation] of the texture.
  */
-fun GuiGraphics.ninePatchTexture(x: Int, y: Int, width: Int, height: Int, npt: NinePatchThemeState) {
+fun GuiGraphics.ninePatchTexture(
+    x: Int,
+    y: Int,
+    width: Int,
+    height: Int,
+    npt: NinePatchThemeState
+) {
     val rightEdge = npt.cornersSize.width + npt.centerSize.width
     val bottomEdge = npt.cornersSize.height + npt.centerSize.height
 

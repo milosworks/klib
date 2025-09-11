@@ -2,7 +2,6 @@ package xyz.milosworks.klib.ui.layout.containers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.measure.*
@@ -11,9 +10,9 @@ import xyz.milosworks.klib.ui.layout.primitive.Arrangement
 import xyz.milosworks.klib.ui.layout.primitive.LayoutDirection
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.modifiers.core.get
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetModifier
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetValues
-import xyz.milosworks.klib.ui.modifiers.position.outset.OutsetModifier
+import xyz.milosworks.klib.ui.modifiers.position.margin.MarginModifier
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingModifier
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingValues
 
 /**
  * A layout that arranges its children in a vertical column from top to bottom.
@@ -49,7 +48,6 @@ fun Column(
 
     Layout(
         measurePolicy,
-        renderer = DefaultRenderer(),
         modifier = modifier,
         content = content,
     )
@@ -76,16 +74,20 @@ private data class ColumnMeasurePolicy(
             outPositions = positions
         )
         return MeasureResult(width, height) {
-            val inset = (scope as? LayoutNode)?.modifier?.get<InsetModifier>()?.inset ?: InsetValues()
+            val inset =
+                (scope as? LayoutNode)?.modifier?.get<PaddingModifier>()?.padding ?: PaddingValues()
             var accumulatedOutset = 0
             placeables.forEachIndexed { index, placeable ->
-                val x = horizontalAlignment.align(placeable.width, width, LayoutDirection.Ltr) + inset.left
+                val x = horizontalAlignment.align(
+                    placeable.width,
+                    width,
+                    LayoutDirection.Ltr
+                ) + inset.left
                 val y = positions[index] + accumulatedOutset + inset.top
 
                 placeable.placeAt(x, y)
 
-                // After placing, the total vertical outset of this child affects the next ones.
-                (measurables[index] as? LayoutNode)?.get<OutsetModifier>()?.let { outset ->
+                (measurables[index] as? LayoutNode)?.get<MarginModifier>()?.let { outset ->
                     accumulatedOutset += outset.vertical
                 }
             }

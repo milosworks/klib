@@ -1,8 +1,11 @@
 package xyz.milosworks.klib.ui.modifiers.appearance
 
 import androidx.compose.runtime.Stable
+import xyz.milosworks.klib.ui.modifiers.core.ContentDrawScope
+import xyz.milosworks.klib.ui.modifiers.core.DrawModifier
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.utils.KColor
+import xyz.milosworks.klib.ui.utils.extensions.fillGradient
 
 enum class GradientDirection {
     TOP_TO_BOTTOM,
@@ -33,28 +36,33 @@ data class BackgroundModifier(
     val startColor: Int,
     val endColor: Int,
     val gradientDirection: GradientDirection = GradientDirection.TOP_TO_BOTTOM
-) : Modifier.Element<BackgroundModifier> {
-    override fun mergeWith(other: BackgroundModifier): BackgroundModifier =
-        throw UnsupportedOperationException("not implemented")
+) : Modifier.Element<BackgroundModifier>, DrawModifier {
+    override fun ContentDrawScope.draw() {
+        val (topLeft, topRight, bottomLeft, bottomRight) = when (gradientDirection) {
+            GradientDirection.TOP_TO_BOTTOM -> listOf(startColor, startColor, endColor, endColor)
+            GradientDirection.BOTTOM_TO_TOP -> listOf(endColor, endColor, startColor, startColor)
+            GradientDirection.LEFT_TO_RIGHT -> listOf(startColor, endColor, startColor, endColor)
+            GradientDirection.RIGHT_TO_LEFT -> listOf(endColor, startColor, endColor, startColor)
+        }
 
-    override fun toString(): String =
-        if (startColor == endColor) "BackgroundModifier(color=#${
-            String.format(
-                "%08X",
-                startColor
-            )
-        }${if (gradientDirection != GradientDirection.TOP_TO_BOTTOM) ", gradientDirection=$gradientDirection" else ""})"
-        else "BackgroundModifier(startColor=#${
-            String.format(
-                "%08X",
-                startColor
-            )
-        }, endColor=#${
-            String.format(
-                "%08X",
-                endColor
-            )
-        }${if (gradientDirection != GradientDirection.TOP_TO_BOTTOM) ", gradientDirection=$gradientDirection" else ""})"
+        guiGraphics.fillGradient(x, y, width, height, topLeft, topRight, bottomLeft, bottomRight)
+
+        drawContent()
+    }
+
+    override fun mergeWith(other: BackgroundModifier): BackgroundModifier = other
+
+    override fun toString(): String = if (startColor == endColor) "BackgroundModifier(color=#${
+        String.format(
+            "%08X",
+            startColor
+        )
+    })" else "BackgroundModifier(startColor=#${
+        String.format(
+            "%08X",
+            startColor
+        )
+    }, endColor=#${String.format("%08X", endColor)}, direction=$gradientDirection)"
 }
 
 /**
@@ -65,7 +73,8 @@ data class BackgroundModifier(
  * @param color The color to fill the background.
  */
 @Stable
-fun Modifier.background(color: KColor): Modifier = this then BackgroundModifier(color.argb, color.argb)
+fun Modifier.background(color: KColor): Modifier =
+    this then BackgroundModifier(color.argb, color.argb)
 
 /**
  * Applies a gradient background to a composable.

@@ -2,7 +2,6 @@ package xyz.milosworks.klib.ui.layout.containers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.measure.*
@@ -11,8 +10,8 @@ import xyz.milosworks.klib.ui.layout.primitive.IntSize
 import xyz.milosworks.klib.ui.layout.primitive.LayoutDirection
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.modifiers.core.get
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetModifier
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetValues
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingModifier
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingValues
 
 /**
  * A composable that arranges its children on top of each other.
@@ -40,7 +39,6 @@ fun Box(
     val measurePolicy = remember(contentAlignment) { BoxMeasurePolicy(contentAlignment) }
     Layout(
         measurePolicy,
-        renderer = DefaultRenderer(),
         modifier = modifier,
         content = content,
     )
@@ -57,7 +55,8 @@ internal data class BoxMeasurePolicy(
         height: Int
     ): MeasureResult {
         return MeasureResult(width, height) {
-            val inset = (scope as? LayoutNode)?.modifier?.get<InsetModifier>()?.inset ?: InsetValues()
+            val inset =
+                (scope as? LayoutNode)?.modifier?.get<PaddingModifier>()?.padding ?: PaddingValues()
             for (child in placeables) {
                 child.placeAt(
                     alignment.align(

@@ -35,7 +35,7 @@ loom {
         maybeCreate("main").apply {
             sourceSet(project.sourceSets.main.get())
         }
-        create("test") {
+        create("test").apply {
             sourceSet(project.sourceSets.test.get())
         }
     }
@@ -116,7 +116,10 @@ tasks {
     shadowJar {
         exclude("fabric.mod.json")
         configurations =
-            listOf(project.configurations.getByName("shadowCommon"), project.configurations.getByName("shadow"))
+            listOf(
+                project.configurations.getByName("shadowCommon"),
+                project.configurations.getByName("shadow")
+            )
         archiveClassifier.set("dev-shadow")
     }
 

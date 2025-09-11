@@ -82,7 +82,13 @@ data class KColor(val red: Int = 0, val green: Int = 0, val blue: Int = 0, val a
          */
         fun ofHsv(hue: Float, saturation: Float, value: Float, alpha: Float): KColor {
             // owo-lib calls 0.5e-7f the funny number "do not turn a hue value of 1f into yellow" constant.
-            return ofArgb(((alpha * 255).toInt() shl 24 or Mth.hsvToRgb(hue - 0.5e-7f, saturation, value)).toLong())
+            return ofArgb(
+                ((alpha * 255).toInt() shl 24 or Mth.hsvToRgb(
+                    hue - 0.5e-7f,
+                    saturation,
+                    value
+                )).toLong()
+            )
         }
 
         /**

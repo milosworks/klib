@@ -1,6 +1,7 @@
 package xyz.milosworks.klib.ui.utils.extensions
 
 import net.minecraft.client.gui.screens.Screen
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.modifiers.input.*
 
@@ -10,11 +11,16 @@ internal fun <T : InputEvent> Screen.processInputEvent(
     condition: (LayoutNode) -> Boolean = { true },
     process: (LayoutNode, T) -> Unit
 ) {
-    for (child in node.children.asReversed()) {
-        if (!event.isConsumed) processInputEvent(child, event, condition, process)
-        else break
+    val sortedChildren = node.children.sortedBy { it.zIndex }
+
+    for (child in sortedChildren.asReversed()) {
+        if (event.isConsumed) break
+        processInputEvent(child, event, condition, process)
     }
-    if (!event.isConsumed && condition(node)) process(node, event)
+
+    if (!event.isConsumed && condition(node)) {
+        process(node, event)
+    }
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -28,10 +34,14 @@ internal inline fun Screen.processPointerEvent(
 ): PointerEvent {
     val event = BasicPointerEvent(eventType, mouseX, mouseY)
 
-    processInputEvent(node, event, if (global) { _ -> true } else condition) { currentNode, currentEvent ->
+    processInputEvent(
+        node,
+        event,
+        if (global) { _ -> true } else condition) { currentNode, currentEvent ->
         currentNode.modifier.foldIn(Unit) { acc, el ->
-            if (el is OnPointerEventModifier && el.eventType == eventType && (global || !currentEvent.isConsumed))
-                el.onEvent(currentNode, event)
+            if (el is OnPointerEventModifier<*> && el.eventType == eventType && (global || !currentEvent.isConsumed))
+                @Suppress("UNCHECKED_CAST")
+                (el.onEvent as (UINode, PointerEvent) -> Unit)(currentNode, event)
         }
     }
     return event
@@ -44,13 +54,24 @@ internal inline fun Screen.processScrollEvent(
     mouseY: Double,
     scrollX: Double,
     scrollY: Double,
+    eventType: PointerEventType,
+    global: Boolean = false,
 ): ScrollEvent {
-    val event = ScrollEvent(mouseX, mouseY, scrollX, scrollY)
+    val event = ScrollEvent(eventType, mouseX, mouseY, scrollX, scrollY)
 
-    processInputEvent(node, event) { currentNode, currentEvent ->
+    processInputEvent(
+        node,
+        event,
+        if (global) { _ -> true } else { layoutNode ->
+            layoutNode.isBounded(
+                mouseX.toInt(),
+                mouseY.toInt()
+            )
+        }) { currentNode, currentEvent ->
         currentNode.modifier.foldIn(Unit) { acc, el ->
-            if (el is OnPointerEventModifier && el.eventType == PointerEventType.SCROLL && !currentEvent.isConsumed)
-                el.onEvent(currentNode, event)
+            if (el is OnPointerEventModifier<*> && el.eventType == eventType && (global || !currentEvent.isConsumed))
+                @Suppress("UNCHECKED_CAST")
+                (el.onEvent as (UINode, PointerEvent) -> Unit)(currentNode, event)
         }
     }
     return event
@@ -63,14 +84,22 @@ internal inline fun Screen.processDragEvent(
     mouseY: Double,
     button: Int,
     dragX: Double,
-    dragY: Double
+    dragY: Double,
+    eventType: PointerEventType,
+    global: Boolean = false,
 ): DragEvent {
-    val event = DragEvent(mouseX, mouseY, button, dragX, dragY)
+    val event = DragEvent(eventType, mouseX, mouseY, button, dragX, dragY)
 
-    processInputEvent(node, event) { currentNode, currentEvent ->
+    processInputEvent(node, event, if (global) { _ -> true } else { layoutNode ->
+        layoutNode.isBounded(
+            mouseX.toInt(),
+            mouseY.toInt()
+        )
+    }) { currentNode, currentEvent ->
         currentNode.modifier.foldIn(Unit) { acc, el ->
-            if (el is OnPointerEventModifier && el.eventType == PointerEventType.DRAG && !currentEvent.isConsumed)
-                el.onEvent(currentNode, event)
+            if (el is OnPointerEventModifier<*> && el.eventType == eventType && (global || !currentEvent.isConsumed))
+                @Suppress("UNCHECKED_CAST")
+                (el.onEvent as (UINode, PointerEvent) -> Unit)(currentNode, event)
         }
     }
     return event
@@ -87,7 +116,10 @@ internal inline fun Screen.processKeyEvent(
 
     processInputEvent(node, event) { currentNode, currentEvent ->
         currentNode.modifier.foldIn(Unit) { acc, el ->
-            if (el is OnKeyEventModifier && !currentEvent.isConsumed) el.onEvent(currentNode, currentEvent)
+            if (el is OnKeyEventModifier && !currentEvent.isConsumed) el.onEvent(
+                currentNode,
+                currentEvent
+            )
         }
     }
 
@@ -104,7 +136,10 @@ internal inline fun Screen.processCharEvent(
 
     processInputEvent(node, event) { currentNode, currentEvent ->
         currentNode.modifier.foldIn(Unit) { acc, el ->
-            if (el is OnCharTypedModifier && !currentEvent.isConsumed) el.onEvent(currentNode, currentEvent)
+            if (el is OnCharTypedModifier && !currentEvent.isConsumed) el.onEvent(
+                currentNode,
+                currentEvent
+            )
         }
     }
 

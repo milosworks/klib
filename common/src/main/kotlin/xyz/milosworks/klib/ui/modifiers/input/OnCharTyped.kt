@@ -1,6 +1,6 @@
 package xyz.milosworks.klib.ui.modifiers.input
 
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
+import xyz.milosworks.klib.ui.base.UINode
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 
 data class OnCharTypedModifier(

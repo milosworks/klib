@@ -9,7 +9,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
+import org.lwjgl.glfw.GLFW
+import xyz.milosworks.klib.ui.layer.LayerStackManager
+import xyz.milosworks.klib.ui.layer.LocalLayerManager
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.containers.Box
 import xyz.milosworks.klib.ui.layout.primitive.Alignment
@@ -32,10 +34,8 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     private val composeScope = CoroutineScope(Dispatchers.Default) + clock
     final override val coroutineContext: CoroutineContext = composeScope.coroutineContext
 
-    private val rootNode = LayoutNode()
-
-    private val recomposer = Recomposer(coroutineContext)
-    private val composition = Composition(UINodeApplier(rootNode), recomposer)
+    private lateinit var layerManager: LayerStackManager
+    private lateinit var recomposer: Recomposer
 
     private var applyScheduled = false
     private val snapshotHandle = Snapshot.registerGlobalWriteObserver {
@@ -52,13 +52,19 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     private var lastMouseY = 0.0
 
     protected fun start(content: @Composable () -> Unit) {
+        recomposer = Recomposer(coroutineContext)
+        layerManager = LayerStackManager(recomposer)
+
         UIScopeManager.scopes += composeScope
         launch {
             recomposer.runRecomposeAndApplyChanges()
         }
 
-        setContent {
-            CompositionLocalProvider(LocalContainer provides this) {
+        layerManager.push { dismiss ->
+            CompositionLocalProvider(
+                LocalContainer provides this,
+                LocalLayerManager provides layerManager
+            ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -69,19 +75,19 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
         }
     }
 
-    private fun setContent(content: @Composable () -> Unit) {
-        composition.setContent {
-            content()
-        }
-    }
-
     open fun renderNodes(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (hasFrameWaiters) {
             hasFrameWaiters = false
-            clock.sendFrame(System.nanoTime()) // Frame time value is not used by Compose runtime.
+            clock.sendFrame(System.nanoTime())
         }
-        rootNode.measure(Constraints(maxWidth = width, maxHeight = height))
-        rootNode.render(0, 0, guiGraphics, mouseX, mouseY, partialTick)
+
+        var zOffset = 0f
+        for (layer in layerManager.layers) {
+            val rootNode = layer.rootNode
+            rootNode.measure(Constraints(maxWidth = width, maxHeight = height))
+            rootNode.render(0, 0, guiGraphics, mouseX, mouseY, partialTick, zOffset)
+            zOffset = rootNode.getMaxZ(zOffset) + 10.0f
+        }
     }
 
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
@@ -94,81 +100,119 @@ abstract class ComposeContainerScreen<T : AbstractContainerMenu>(
     }
 
     override fun onClose() {
+        GLFW.glfwSetCursor(
+            minecraft!!.window.window,
+            GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR)
+        )
         super.onClose()
         recomposer.close()
         snapshotHandle.dispose()
-        composition.dispose()
+        layerManager.layers.forEach { it.dispose() }
         composeScope.cancel()
     }
 
+    private fun getTopNode(): LayoutNode? = layerManager.top?.rootNode
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.GLOBAL_PRESS, true)
-
-        val event = processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.PRESS)
-
+        val topNode = getTopNode() ?: return super.mouseClicked(mouseX, mouseY, button)
+        processPointerEvent(topNode, mouseX, mouseY, PointerEventType.GLOBAL_PRESS, true)
+        val event = processPointerEvent(topNode, mouseX, mouseY, PointerEventType.PRESS)
         return event.bypassSuper || super.mouseClicked(mouseX, mouseY, button)
     }
 
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.GLOBAL_RELEASE, true)
-
-        val event = processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.RELEASE)
-
+        val topNode = getTopNode() ?: return super.mouseReleased(mouseX, mouseY, button)
+        processPointerEvent(topNode, mouseX, mouseY, PointerEventType.GLOBAL_RELEASE, true)
+        val event = processPointerEvent(topNode, mouseX, mouseY, PointerEventType.RELEASE)
         return event.bypassSuper || super.mouseReleased(mouseX, mouseY, button)
     }
 
     override fun mouseMoved(mouseX: Double, mouseY: Double) {
-        processPointerEvent(rootNode, mouseX, mouseY, PointerEventType.MOVE)
+        val topNode = getTopNode() ?: return super.mouseMoved(mouseX, mouseY)
+        processPointerEvent(topNode, mouseX, mouseY, PointerEventType.MOVE)
 
         processPointerEvent(
-            rootNode,
+            topNode,
             mouseX,
             mouseY,
             PointerEventType.ENTER
-        ) { it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            it.isBounded(mouseX.toInt(), mouseY.toInt()) && !it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         processPointerEvent(
-            rootNode,
+            topNode,
             mouseX,
             mouseY,
             PointerEventType.EXIT
-        ) { !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(lastMouseX.toInt(), lastMouseY.toInt()) }
+        ) {
+            !it.isBounded(mouseX.toInt(), mouseY.toInt()) && it.isBounded(
+                lastMouseX.toInt(),
+                lastMouseY.toInt()
+            )
+        }
 
         lastMouseX = mouseX
         lastMouseY = mouseY
+        super.mouseMoved(mouseX, mouseY)
     }
 
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
-        val event = processScrollEvent(rootNode, mouseX, mouseY, scrollX, scrollY)
+    override fun mouseScrolled(
+        mouseX: Double,
+        mouseY: Double,
+        scrollX: Double,
+        scrollY: Double
+    ): Boolean {
+        val topNode = getTopNode() ?: return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
+        val event =
+            processScrollEvent(topNode, mouseX, mouseY, scrollX, scrollY, PointerEventType.SCROLL)
         return event.bypassSuper || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
     }
 
-    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
-        val event = processDragEvent(rootNode, mouseX, mouseY, button, dragX, dragY)
+    override fun mouseDragged(
+        mouseX: Double,
+        mouseY: Double,
+        button: Int,
+        dragX: Double,
+        dragY: Double
+    ): Boolean {
+        val topNode =
+            getTopNode() ?: return super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
+        val event =
+            processDragEvent(topNode, mouseX, mouseY, button, dragX, dragY, PointerEventType.DRAG)
         return event.bypassSuper || super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        // CTRL + SHIFT
-        // CTRL is detected as modifier 3
-        // SHIFT is the detected key
-        if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) rootNode.debug = (rootNode.debug == false)
-        if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = true
+        val topNode = getTopNode() ?: return super.keyPressed(keyCode, scanCode, modifiers)
+        val baseNode = layerManager.layers.firstOrNull()?.rootNode
+        if (baseNode != null) {
+            // CTRL + SHIFT
+            // CTRL is detected as modifier 3
+            // SHIFT is the detected key
+            if (keyCode == InputConstants.KEY_LSHIFT && modifiers == 3) baseNode.debug =
+                (!baseNode.debug)
+            if (baseNode.debug && keyCode == InputConstants.KEY_LSHIFT) baseNode.extraDebug = true
+        }
 
-        val event = processKeyEvent(rootNode, keyCode, scanCode, modifiers)
-
+        val event = processKeyEvent(topNode, keyCode, scanCode, modifiers)
         return event.bypassSuper || super.keyPressed(keyCode, scanCode, modifiers)
     }
 
     override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
-        val event = processCharEvent(rootNode, codePoint, modifiers)
-
+        val topNode = getTopNode() ?: return super.charTyped(codePoint, modifiers)
+        val event = processCharEvent(topNode, codePoint, modifiers)
         return event.bypassSuper || super.charTyped(codePoint, modifiers)
     }
 
     override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (rootNode.debug && keyCode == InputConstants.KEY_LSHIFT) rootNode.extraDebug = false
-
+        val baseNode = layerManager.layers.firstOrNull()?.rootNode
+        if (baseNode != null && baseNode.debug && keyCode == InputConstants.KEY_LSHIFT) {
+            baseNode.extraDebug = false
+        }
         return super.keyReleased(keyCode, scanCode, modifiers)
     }
 }

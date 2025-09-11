@@ -2,8 +2,8 @@ package xyz.milosworks.klib.ui.layout
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ComposeNode
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINode
-import xyz.milosworks.klib.ui.base.ui1.nodes.UINodeApplier
+import xyz.milosworks.klib.ui.base.UINode
+import xyz.milosworks.klib.ui.base.UINodeApplier
 import xyz.milosworks.klib.ui.layout.measure.MeasurePolicy
 import xyz.milosworks.klib.ui.layout.measure.Renderer
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
@@ -25,7 +25,6 @@ import xyz.milosworks.klib.ui.modifiers.core.Modifier
  * fun MyCustomComposable(modifier: Modifier = Modifier) {
  *     Layout(
  *         measurePolicy = { _, constraints -> MeasureResult(constraints.minWidth, constraints.minHeight) {} },
- *         renderer = DefaultRenderer(),
  *         modifier = modifier,
  *     )
  * }
@@ -44,7 +43,7 @@ inline fun Layout(
     content: @Composable () -> Unit = {}
 ) {
     ComposeNode<UINode, UINodeApplier>(
-        factory = UINode.Companion.Constructor(Thread.currentThread().stackTrace[1].methodName),
+        factory = UINode.Constructor(Thread.currentThread().stackTrace[1].methodName),
         update = {
             set(measurePolicy) { this.measurePolicy = it }
             set(renderer) { this.renderer = it }

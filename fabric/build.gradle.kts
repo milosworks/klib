@@ -46,7 +46,7 @@ loom {
         getByName("client") {
             source(sourceSets.test.get())
 
-//            System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
+//            System.setProperty("org.slf4j.simpleLogger.defaullltLogLevel", "debug")
 
             programArgs("--username", "Vyrek_", "--quickPlaySingleplayer", "Test")
         }
@@ -112,7 +112,10 @@ tasks {
 
     shadowJar {
         configurations =
-            listOf(project.configurations.getByName("shadowCommon"), project.configurations.getByName("shadow"))
+            listOf(
+                project.configurations.getByName("shadowCommon"),
+                project.configurations.getByName("shadow")
+            )
         archiveClassifier.set("dev-shadow")
     }
 

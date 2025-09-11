@@ -2,7 +2,6 @@ package xyz.milosworks.klib.ui.layout.containers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import xyz.milosworks.klib.ui.layout.DefaultRenderer
 import xyz.milosworks.klib.ui.layout.Layout
 import xyz.milosworks.klib.ui.layout.LayoutNode
 import xyz.milosworks.klib.ui.layout.measure.*
@@ -11,9 +10,9 @@ import xyz.milosworks.klib.ui.layout.primitive.Arrangement
 import xyz.milosworks.klib.ui.layout.primitive.LayoutDirection
 import xyz.milosworks.klib.ui.modifiers.core.Modifier
 import xyz.milosworks.klib.ui.modifiers.core.get
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetModifier
-import xyz.milosworks.klib.ui.modifiers.position.inset.InsetValues
-import xyz.milosworks.klib.ui.modifiers.position.outset.OutsetModifier
+import xyz.milosworks.klib.ui.modifiers.position.margin.MarginModifier
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingModifier
+import xyz.milosworks.klib.ui.modifiers.position.padding.PaddingValues
 
 /**
  * A layout that arranges its children in a horizontal row from left to right.
@@ -49,7 +48,6 @@ fun Row(
     }
     Layout(
         measurePolicy,
-        renderer = DefaultRenderer(),
         modifier = modifier,
         content = content,
     )
@@ -69,11 +67,9 @@ private data class RowMeasurePolicy(
         width: Int,
         height: Int
     ): MeasureResult {
-        // Get the widths of all children for arrangement calculation
         val sizes = placeables.map { it.width }.toIntArray()
         val positions = IntArray(placeables.size)
 
-        // Calculate base positions according to arrangement
         horizontalArrangement.arrange(
             totalSize = width,
             sizes = sizes,
@@ -82,19 +78,17 @@ private data class RowMeasurePolicy(
         )
 
         return MeasureResult(width, height) {
-            val inset = (scope as? LayoutNode)?.modifier?.get<InsetModifier>()?.inset ?: InsetValues()
-            // We need to adjust positions for each element based on previous elements' outsets
+            val inset =
+                (scope as? LayoutNode)?.modifier?.get<PaddingModifier>()?.padding ?: PaddingValues()
             var accumulatedOutset = 0
 
             placeables.forEachIndexed { index, placeable ->
                 val x = positions[index] + accumulatedOutset + inset.left
                 val y = verticalAlignment.align(placeable.height, height) + inset.top
 
-                // Place the child at the adjusted position
                 placeable.placeAt(x, y)
 
-                // After placing, the total horizontal outset of this child affects the next ones.
-                (measurables[index] as? LayoutNode)?.get<OutsetModifier>()?.let { outset ->
+                (measurables[index] as? LayoutNode)?.get<MarginModifier>()?.let { outset ->
                     accumulatedOutset += outset.horizontal
                 }
             }
