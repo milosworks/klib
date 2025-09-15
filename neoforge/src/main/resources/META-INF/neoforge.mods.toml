@@ -1,0 +1,26 @@
+modLoader = "kotlinforforge"
+loaderVersion = "${versions.kotlin_neoforge_range}"
+license = "${license}"
+
+[[mods]]
+modId = "${modId}"
+version = "${version}"
+displayName = "${modName}"
+logoFile = "${modId}.png"
+credits = "${credits}"
+authors = "${modAuthor}"
+description = '''${description}'''
+
+[[dependencies."${modId}"]]
+modId = "neoforge"
+type = "required"
+versionRange = "${versions.neoforge_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${modId}"]]
+modId = "minecraft"
+type = "required"
+versionRange = "${versions.minecraft_range}"
+ordering = "NONE"
+side = "BOTH"

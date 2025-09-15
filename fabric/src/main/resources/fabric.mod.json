@@ -1,0 +1,36 @@
+{
+    "schemaVersion": 1,
+    "id": "${modId}",
+    "version": "${version}",
+    "name": "${modName}",
+    "description": "${description}",
+    "authors": [
+        "${modAuthor}"
+    ],
+    "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC/fabric-example-mod"
+    },
+    "license": "${license}",
+    "icon": "${modId}.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            {
+                "adapter": "kotlin",
+                "value": "xyz.milosworks.klib.KLib"
+            }
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=${versions.fabric_loader}",
+        "fabric-api": "*",
+        "minecraft": "${versions.minecraft}",
+        "java": ">=${versions.java}",
+        "fabric-language-kotlin": ">=${versions.kotlin_fabric}"
+    },
+    "suggests": {
+        "another-mod": "*"
+    }
+}
+  
