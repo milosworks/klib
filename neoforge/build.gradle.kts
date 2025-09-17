@@ -21,11 +21,13 @@ architectury {
 @Suppress("UnstableApiUsage")
 configurations {
     create("common")
+    create("testCommon")
     create("shadowCommon")
     compileClasspath.get().extendsFrom(configurations["common"])
     runtimeClasspath.get().extendsFrom(configurations["common"])
-    testCompileClasspath.get().extendsFrom(compileClasspath.get())
-    testRuntimeClasspath.get().extendsFrom(runtimeClasspath.get())
+    testCompileClasspath.get().extendsFrom(compileClasspath.get(), configurations["testCommon"])
+    testRuntimeClasspath.get().extendsFrom(runtimeClasspath.get(), configurations["testCommon"])
+//    getByName("developmentNeoForge").extendsFrom(configurations["common"])
 }
 
 loom {
@@ -79,12 +81,12 @@ dependencies {
     bundleRuntimeLibrary(libs.kotlinx.serialization.toml)
     bundleRuntimeLibrary(libs.kotlinx.serialization.json5)
     bundleRuntimeLibrary(libs.kotlinx.serialization.cbor)
-
     bundleRuntimeLibrary(compose.runtime)
 
     testImplementation(project.project(":common").sourceSets.test.get().output)
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
+    "testCommon"(project(":common", "testNamedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionNeoForge")) { isTransitive = false }
 }
 

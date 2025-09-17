@@ -9,7 +9,6 @@ import net.minecraft.server.packs.PackType
 import org.slf4j.Logger
 import xyz.milosworks.klib.ui.utils.ThemeResourceListener
 
-
 /** @suppress suppress for dokka */
 object KLib {
     const val ID = "klib"
@@ -21,7 +20,8 @@ object KLib {
     val LOGGER: Logger = LogUtils.getLogger()
 
     @JvmStatic
-    operator fun get(path: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ID, path)
+    operator fun get(path: String): ResourceLocation =
+        ResourceLocation.fromNamespaceAndPath(ID, path)
 
     @JvmStatic
     fun init() {
