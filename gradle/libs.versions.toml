@@ -1,0 +1,36 @@
+[versions]
+cloche = "0.13.4"
+compose = "1.7.3"
+
+kotlin = "2.1.21"
+kotlin-neoforge = "5.10.0"
+kotlin-fabric = "1.13.6+kotlin.2.2.20"
+
+kotlinx-serialization = { require = "[1.8.0,)", prefer = "1.9.0" }
+
+minecraft = "1.21.1"
+
+parchment = "2024.11.17"
+
+neoforge-loader = "21.1.209"
+
+fabric-loader = "0.17.2"
+fabric-api = "0.116.6"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-neoforge = { module = "thedarkcolour:kotlinforforge-neoforge", version.ref = "kotlin-neoforge" }
+kotlin-fabric = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "kotlin-fabric" }
+
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor-jvm", version.ref = "kotlinx-serialization" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+
+cloche = { id = "earth.terrarium.cloche", version.ref = "cloche" }

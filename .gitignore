@@ -1,0 +1,35 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea/*
+!.idea/scopes
+
+# gradle
+**/build/
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+
+# other
+eclipse
+run
+runs
+
+# dokka
+**/dokka/*
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
