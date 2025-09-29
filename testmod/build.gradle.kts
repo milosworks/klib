@@ -1,9 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
+    idea
+
+    kotlin("jvm")
+
     alias(libs.plugins.cloche)
 
-    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -49,6 +52,12 @@ cloche {
         parchment(libs.versions.parchment.get())
     }
 
+    common {
+        dependencies {
+            implementation(projects.klib)
+        }
+    }
+
     neoforge {
         loaderVersion = libs.versions.neoforge.loader.get()
 
@@ -85,8 +94,4 @@ cloche {
 
 kotlin {
     jvmToolchain(21)
-}
-
-dependencies {
-    implementation(projects.klib)
 }

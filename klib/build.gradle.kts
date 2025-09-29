@@ -3,7 +3,8 @@
 plugins {
     alias(libs.plugins.cloche)
 
-    alias(libs.plugins.kotlin.jvm)
+    kotlin("jvm")
+
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
 
