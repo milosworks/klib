@@ -83,7 +83,7 @@ dependencies {
     bundleRuntimeLibrary(libs.kotlinx.serialization.cbor)
     bundleRuntimeLibrary(compose.runtime)
 
-    testImplementation(project.project(":common").sourceSets.test.get().output)
+//    testImplementation(project.project(":common").sourceSets.test.get().output)
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "testCommon"(project(":common", "testNamedElements")) { isTransitive = false }
@@ -138,5 +138,13 @@ tasks {
         dependsOn(commonSources)
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         from(commonSources.get().archiveFile.map { zipTree(it) })
+    }
+
+    task("printRuntimeClasspath") {
+        val runtimeClasspath = sourceSets.test.get().runtimeClasspath
+        inputs.files(runtimeClasspath)
+        doLast {
+            println(runtimeClasspath.joinToString("\n") { it.path })
+        }
     }
 }

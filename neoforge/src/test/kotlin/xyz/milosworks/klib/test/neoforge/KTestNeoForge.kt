@@ -16,11 +16,6 @@ object KTestNeoForge {
             TMenus.initClient()
         }
 
-        println(
-            KTestNeoForge::class.java.classLoader.definedPackages.map(Package::getName).sorted()
-                .forEach(::println)
-        )
-
         MOD_BUS.addListener<FMLConstructModEvent> {
             KTest.init()
         }

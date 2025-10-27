@@ -32,7 +32,7 @@ modpublisher = "2.1.6"
 dokka = "2.0.0"
 shadow = "8.3.0"
 compose = "1.7.3"
-archie = "1.0.3"
+archie = "1.0.2"
 
 [bundles]
 # must contain all transitive deps, compose goes here in the future
