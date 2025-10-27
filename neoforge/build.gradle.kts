@@ -1,10 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
+import xyz.milosworks.plugin.bundleRuntimeLibrary
 import java.util.Locale.getDefault
 
 plugins {
     id("platform")
     id("mod-resources")
+    id("patch-fml")
     alias(libs.plugins.moddev)
 }
 
@@ -17,8 +19,9 @@ modResources {
 dependencies {
     implementation(libs.kotlin.neoforge)
 
-    implementation(libs.kotlinx.serialization.cbor)
-    runtimeOnly(libs.kotlinx.serialization.cbor)
+    bundleRuntimeLibrary(libs.kotlinx.serialization.cbor)
+//    implementation(libs.kotlinx.serialization.cbor)
+//    runtimeOnly(libs.kotlinx.serialization.cbor)
 }
 
 neoForge {
