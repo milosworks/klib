@@ -1,5 +1,5 @@
 [versions]
-cloche = "0.13.4"
+cloche = "0.16.6"
 compose = "1.7.3"
 
 kotlin = "2.1.21"

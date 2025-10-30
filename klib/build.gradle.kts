@@ -64,11 +64,7 @@ cloche {
         loaderVersion = libs.versions.neoforge.loader.get()
 
         metadata {
-            dependency {
-                version(libs.versions.kotlin.neoforge.get())
-                modId = "kotlinforforge"
-                required = true
-            }
+            dependency("kotlinforforge", libs.versions.kotlin.neoforge.get())
         }
 
         dependencies {
@@ -88,11 +84,7 @@ cloche {
                 adapter = "kotlin"
             }
 
-            dependency {
-                modId = "fabric-language-kotlin"
-                version(libs.versions.kotlin.fabric.get())
-                required = true
-            }
+            dependency("fabric-language-kotlin", libs.versions.kotlin.fabric.get())
         }
 
         dependencies {
