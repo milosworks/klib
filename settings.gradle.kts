@@ -1,22 +1,18 @@
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
 pluginManagement {
-	repositories {
-		maven("https://maven.fabricmc.net/")
-		maven("https://maven.architectury.dev/")
-		maven("https://maven.minecraftforge.net/")
-		maven("https://maven.neoforged.net/releases/")
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
 
-		maven("https://maven.firstdarkdev.xyz/releases")
-
-		maven("https://maven.milosworks.xyz/releases")
-		maven("https://repo.kernelpanicsoft.net/maven/releases")
-
-		mavenCentral()
-		gradlePluginPortal()
-	}
+        maven {
+            name = "Cloche"
+            url = uri("https://maven.msrandom.net/repository/cloche")
+        }
+    }
 }
 
-include(":common", ":fabric", ":neoforge")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "klib"
+rootProject.name = "KLib"
+
+include(":klib")
+include(":testmod")
