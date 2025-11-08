@@ -22,7 +22,9 @@ import kotlin.coroutines.CoroutineContext
 val LocalScreen: ProvidableCompositionLocal<ComposeScreen> =
     compositionLocalOf { throw IllegalStateException("Screen has not been provided") }
 
-abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
+abstract class ComposeScreen (
+    title: Component, val asynchronous: Boolean = true
+) : Screen(title), CoroutineScope {
     private var hasFrameWaiters = false
     private val clock = BroadcastFrameClock { hasFrameWaiters = true }
 
@@ -31,6 +33,7 @@ abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
 
     private lateinit var layerManager: LayerStackManager
     private lateinit var recomposer: Recomposer
+    private var recomposeJob: Job? = null
 
     private var applyScheduled = false
     private val snapshotHandle = Snapshot.registerGlobalWriteObserver {
@@ -71,7 +74,14 @@ abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
     }
 
     open fun renderNodes(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        if (hasFrameWaiters) {
+        if (asynchronous) {
+            recomposeJob?.let { job ->
+                runBlocking {
+                    job.join()
+                }
+                recomposeJob = null
+            }
+        } else if (hasFrameWaiters) {
             hasFrameWaiters = false
             clock.sendFrame(System.nanoTime())
         }
@@ -83,6 +93,13 @@ abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
             rootNode.render(0, 0, guiGraphics, mouseX, mouseY, partialTick, zOffset)
             zOffset = rootNode.getMaxZ(zOffset) + 10.0f // Add a buffer between layers
         }
+
+        if (asynchronous and hasFrameWaiters) {
+            hasFrameWaiters = false
+            recomposeJob = composeScope.launch {
+                clock.sendFrame(System.nanoTime())
+            }
+        }
     }
 
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
@@ -92,6 +109,7 @@ abstract class ComposeScreen(title: Component) : Screen(title), CoroutineScope {
 
     override fun onClose() {
         super.onClose()
+        recomposeJob?.cancel("GUI closing")
         recomposer.close()
         snapshotHandle.dispose()
         layerManager.layers.forEach { it.dispose() }
